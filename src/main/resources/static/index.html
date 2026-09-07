@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campus Nexus — High-Speed File Distribution & Campus Relay Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="app-background"></div>
+
+    <header class="navbar">
+        <div class="brand">
+            <div class="logo-icon">⚡</div>
+            <div>
+                <div class="brand-title">CAMPUS NEXUS</div>
+                <div class="brand-subtitle">Concurrent Fan-Out & Intranet Mesh Relay</div>
+            </div>
+        </div>
+        <nav class="nav-tabs">
+            <button class="nav-tab active" data-tab="distribution-tab" id="tabBtnDistribution">
+                <span class="icon">📦</span> File Distribution
+            </button>
+            <button class="nav-tab" data-tab="relay-tab" id="tabBtnRelay">
+                <span class="icon">📡</span> Campus Intranet Bridge
+            </button>
+            <button class="nav-tab" data-tab="servers-tab" id="tabBtnServers">
+                <span class="icon">🖥️</span> FTP Targets & Cluster
+            </button>
+        </nav>
+        <div class="header-status">
+            <span class="status-indicator live" id="clusterStatusBadge">10/10 FTP Nodes Live</span>
+        </div>
+    </header>
+
+    <main class="main-container">
+        <!-- TAB 1: FILE DISTRIBUTION -->
+        <section id="distribution-tab" class="tab-pane active">
+            <div class="grid-2col">
+                <!-- Upload & Staging Card -->
+                <div class="glass-card upload-section">
+                    <div class="card-header">
+                        <h2>File Ingestion & Staging</h2>
+                        <span class="badge">Producer Phase</span>
+                    </div>
+                    <p class="section-desc">Upload files to safely stage in local storage, generate cryptographic SHA-256 checksums, and fan-out to 10 FTP servers simultaneously.</p>
+
+                    <div class="drop-zone" id="dropZone">
+                        <input type="file" id="fileInput" class="file-input-hidden">
+                        <div class="drop-icon">📤</div>
+                        <h3>Drag & drop your file here</h3>
+                        <p>or <button type="button" class="btn-browse" id="btnBrowse">browse files</button></p>
+                        <div class="drop-hint">Supports PDF, ZIP, ISO, Media, Documents (up to 500MB)</div>
+                    </div>
+
+                    <div id="uploadProgressContainer" class="upload-progress-card hidden">
+                        <div class="progress-info">
+                            <span id="uploadFileName" class="filename">filename.ext</span>
+                            <span id="uploadProgressPct" class="pct">0%</span>
+                        </div>
+                        <div class="progress-bar-bg">
+                            <div id="uploadProgressBar" class="progress-bar-fill"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pipeline Stat Summary -->
+                <div class="glass-card stat-section">
+                    <div class="card-header">
+                        <h2>Pipeline Architecture</h2>
+                        <span class="badge pulse">Live System</span>
+                    </div>
+                    <div class="stat-grid">
+                        <div class="stat-box">
+                            <span class="stat-val" id="statFilesCount">0</span>
+                            <span class="stat-label">Files Staged</span>
+                        </div>
+                        <div class="stat-box">
+                            <span class="stat-val" id="statTotalJobs">0</span>
+                            <span class="stat-label">Fan-Out Jobs</span>
+                        </div>
+                        <div class="stat-box success">
+                            <span class="stat-val" id="statSuccessJobs">0</span>
+                            <span class="stat-label">Success</span>
+                        </div>
+                        <div class="stat-box error">
+                            <span class="stat-val" id="statFailedJobs">0</span>
+                            <span class="stat-label">Failed / Retried</span>
+                        </div>
+                    </div>
+
+                    <div class="pipeline-flow-diagram">
+                        <div class="flow-step">
+                            <div class="step-num">1</div>
+                            <div class="step-txt"><strong>Ingest & Stage</strong><br>SHA-256 calculation</div>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-step">
+                            <div class="step-num">2</div>
+                            <div class="step-txt"><strong>Fan-Out Queue</strong><br>10 Independent Jobs</div>
+                        </div>
+                        <div class="flow-arrow">➔</div>
+                        <div class="flow-step">
+                            <div class="step-num">3</div>
+                            <div class="step-txt"><strong>Concurrent I/O</strong><br>Bounded Worker Pool</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real-time File & Job Distribution Matrix -->
+            <div class="glass-card matrix-section">
+                <div class="card-header">
+                    <div class="header-left">
+                        <h2>Live Distribution Matrix</h2>
+                        <span class="badge">Real-Time Sync</span>
+                    </div>
+                    <div class="header-actions">
+                        <button class="btn btn-outline" id="btnRefreshJobs">⟳ Refresh Now</button>
+                    </div>
+                </div>
+
+                <div id="fileMatrixContainer" class="file-matrix-container">
+                    <div class="empty-state" id="emptyStateMsg">
+                        <div class="empty-icon">📁</div>
+                        <p>No files uploaded yet. Drag & drop a file above to trigger the 10-node fan-out distribution!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 2: CAMPUS INTRANET BRIDGE -->
+        <section id="relay-tab" class="tab-pane">
+            <div class="grid-2col">
+                <!-- Phone Relay Node Controller -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2>Mobile Peer Node (Campus Wi-Fi)</h2>
+                        <span class="badge" id="mobileRoleBadge">Peer Role</span>
+                    </div>
+                    <p class="section-desc">Friends inside the college campus can connect their smartphones to college Wi-Fi and toggle the relay switch below to become an active bridge node.</p>
+
+                    <div class="relay-toggle-card">
+                        <div class="relay-status-orb" id="relayOrb"></div>
+                        <div class="relay-status-text">
+                            <h3 id="relayStatusTitle">Relay Node Disconnected</h3>
+                            <p id="relayStatusDesc">Click below to establish a persistent WebSocket tunnel.</p>
+                        </div>
+                        <button class="btn btn-primary btn-large" id="btnToggleRelay">Connect as Campus Relay</button>
+                    </div>
+
+                    <div class="node-details-grid">
+                        <div class="node-detail-item">
+                            <span class="detail-label">Device Name:</span>
+                            <input type="text" id="inputDeviceName" class="glass-input" value="Campus Phone (Wi-Fi Node)">
+                        </div>
+                        <div class="node-detail-item">
+                            <span class="detail-label">Reported Subnet:</span>
+                            <span id="dispCampusIp" class="detail-value">10.x.x.x (College LAN)</span>
+                        </div>
+                        <div class="node-detail-item">
+                            <span class="detail-label">Tunnel Latency:</span>
+                            <span id="dispLatency" class="detail-value">-- ms</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Host Intranet Access / Gateway -->
+                <div class="glass-card">
+                    <div class="card-header">
+                        <h2>Laptop Intranet Gateway</h2>
+                        <span class="badge">Host Role</span>
+                    </div>
+                    <p class="section-desc">Access campus-only internal websites (attendance, grades, internal servers, labs) by routing requests through your friend's connected phone.</p>
+
+                    <form id="proxyFetchForm" class="proxy-form">
+                        <div class="input-group">
+                            <input type="url" id="proxyUrlInput" class="glass-input flex-1" placeholder="e.g. http://10.1.2.3/student-portal or http://intranet.local" required>
+                            <button type="submit" class="btn btn-primary" id="btnFetchProxy">Fetch via Peer</button>
+                        </div>
+                    </form>
+
+                    <div class="intranet-response-container">
+                        <div class="response-header">
+                            <span>Relayed Page Output:</span>
+                            <span id="proxyResponseStatus" class="status-code">Awaiting request</span>
+                        </div>
+                        <div id="proxyResponseFrame" class="response-view-box">
+                            <p class="placeholder-text">Enter an intranet URL above and click "Fetch via Peer" to preview internal campus content.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Relay Nodes List -->
+            <div class="glass-card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h2>Active Campus Relay Network</h2>
+                    <span class="badge" id="activeNodesCountBadge">0 Nodes Online</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Device Name</th>
+                                <th>Reported Campus IP</th>
+                                <th>Status</th>
+                                <th>Latency</th>
+                                <th>Connected At</th>
+                            </tr>
+                        </thead>
+                        <tbody id="relayNodesTableBody">
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-muted);">No peer nodes currently connected.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: FTP SERVERS & MOCK CLUSTER -->
+        <section id="servers-tab" class="tab-pane">
+            <div class="glass-card">
+                <div class="card-header">
+                    <div class="header-left">
+                        <h2>Embedded 10-Node Mock FTP Cluster</h2>
+                        <span class="badge live">Local In-Memory Cluster</span>
+                    </div>
+                    <p class="card-subtitle">Zero-configuration testbed running on ports 2121 to 2130. You can simulate server crashes by stopping individual nodes and watching the fan-out retry mechanism in action!</p>
+                </div>
+
+                <div class="cluster-grid" id="mockClusterGrid">
+                    <!-- Populated dynamically with 10 nodes -->
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <h2>Configured FTP Server Destinations</h2>
+                    <span class="badge">Production & Mock Nodes</span>
+                </div>
+                <div class="table-responsive">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Target ID</th>
+                                <th>Host : Port</th>
+                                <th>Username</th>
+                                <th>Remote Directory</th>
+                                <th>Protocol</th>
+                                <th>State</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ftpServersTableBody">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="footer">
+        <div>Campus Nexus v1.0.0 • Producer-Consumer Fan-Out & Intranet Mesh Relay</div>
+        <div>Built for high-performance concurrent file distribution and campus network bridging</div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>
