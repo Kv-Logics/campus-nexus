@@ -3,21 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Campus Nexus — High-Speed File Distribution & Campus Relay Hub</title>
+    <title>Campus Nexus — Enterprise File Distribution & Campus Relay Hub</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="app-background"></div>
-
     <header class="navbar">
         <div class="brand">
             <div class="logo-icon">⚡</div>
             <div>
-                <div class="brand-title">CAMPUS NEXUS</div>
-                <div class="brand-subtitle">Concurrent Fan-Out & Intranet Mesh Relay</div>
+                <div class="brand-title">Campus Nexus</div>
+                <div class="brand-subtitle">High-Speed Fan-Out & Intranet Mesh Hub</div>
             </div>
         </div>
         <nav class="nav-tabs">
@@ -25,7 +23,7 @@
                 <span class="icon">📦</span> File Distribution
             </button>
             <button class="nav-tab" data-tab="relay-tab" id="tabBtnRelay">
-                <span class="icon">📡</span> Campus Intranet Bridge
+                <span class="icon">📡</span> Intranet Relay
             </button>
             <button class="nav-tab" data-tab="servers-tab" id="tabBtnServers">
                 <span class="icon">🖥️</span> FTP Targets & Cluster
@@ -46,12 +44,12 @@
                         <h2>File Ingestion & Staging</h2>
                         <span class="badge">Producer Phase</span>
                     </div>
-                    <p class="section-desc">Upload files to safely stage in local storage, generate cryptographic SHA-256 checksums, and fan-out to 10 FTP servers simultaneously.</p>
+                    <p class="section-desc">Upload files to safely stage in local storage, generate cryptographic SHA-256 checksums, and fan out to 10 FTP destinations simultaneously.</p>
 
                     <div class="drop-zone" id="dropZone">
                         <input type="file" id="fileInput" class="file-input-hidden">
-                        <div class="drop-icon">📤</div>
-                        <h3>Drag & drop your file here</h3>
+                        <div class="drop-icon">📁</div>
+                        <h3>Choose a file or drag & drop here</h3>
                         <p>or <button type="button" class="btn-browse" id="btnBrowse">browse files</button></p>
                         <div class="drop-hint">Supports PDF, ZIP, ISO, Media, Documents (up to 500MB)</div>
                     </div>
@@ -70,8 +68,8 @@
                 <!-- Pipeline Stat Summary -->
                 <div class="glass-card stat-section">
                     <div class="card-header">
-                        <h2>Pipeline Architecture</h2>
-                        <span class="badge pulse">Live System</span>
+                        <h2>System Throughput</h2>
+                        <span class="badge">Live Metrics</span>
                     </div>
                     <div class="stat-grid">
                         <div class="stat-box">
@@ -95,17 +93,17 @@
                     <div class="pipeline-flow-diagram">
                         <div class="flow-step">
                             <div class="step-num">1</div>
-                            <div class="step-txt"><strong>Ingest & Stage</strong><br>SHA-256 calculation</div>
+                            <div class="step-txt"><strong>Ingest & Stage</strong><br>SHA-256 Digest</div>
                         </div>
                         <div class="flow-arrow">➔</div>
                         <div class="flow-step">
                             <div class="step-num">2</div>
-                            <div class="step-txt"><strong>Fan-Out Queue</strong><br>10 Independent Jobs</div>
+                            <div class="step-txt"><strong>Fan-Out Queue</strong><br>10 Target Jobs</div>
                         </div>
                         <div class="flow-arrow">➔</div>
                         <div class="flow-step">
                             <div class="step-num">3</div>
-                            <div class="step-txt"><strong>Concurrent I/O</strong><br>Bounded Worker Pool</div>
+                            <div class="step-txt"><strong>Bounded I/O Pool</strong><br>Parallel Sockets</div>
                         </div>
                     </div>
                 </div>
@@ -115,18 +113,18 @@
             <div class="glass-card matrix-section">
                 <div class="card-header">
                     <div class="header-left">
-                        <h2>Live Distribution Matrix</h2>
-                        <span class="badge">Real-Time Sync</span>
+                        <h2>Distribution Activity Matrix</h2>
+                        <span class="badge">Live Sync</span>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-outline" id="btnRefreshJobs">⟳ Refresh Now</button>
+                        <button class="btn btn-outline" id="btnRefreshJobs">⟳ Refresh</button>
                     </div>
                 </div>
 
                 <div id="fileMatrixContainer" class="file-matrix-container">
                     <div class="empty-state" id="emptyStateMsg">
-                        <div class="empty-icon">📁</div>
-                        <p>No files uploaded yet. Drag & drop a file above to trigger the 10-node fan-out distribution!</p>
+                        <div class="empty-icon">📂</div>
+                        <p>No distribution tasks running. Upload a file above to trigger concurrent 10-node fan-out!</p>
                     </div>
                 </div>
             </div>
@@ -141,7 +139,7 @@
                         <h2>Mobile Peer Node (Campus Wi-Fi)</h2>
                         <span class="badge" id="mobileRoleBadge">Peer Role</span>
                     </div>
-                    <p class="section-desc">Friends inside the college campus can connect their smartphones to college Wi-Fi and toggle the relay switch below to become an active bridge node.</p>
+                    <p class="section-desc">Friends on college Wi-Fi can open this page on their phone and toggle the relay switch below to become an active tunnel gateway.</p>
 
                     <div class="relay-toggle-card">
                         <div class="relay-status-orb" id="relayOrb"></div>
@@ -158,7 +156,7 @@
                             <input type="text" id="inputDeviceName" class="glass-input" value="Campus Phone (Wi-Fi Node)">
                         </div>
                         <div class="node-detail-item">
-                            <span class="detail-label">Reported Subnet:</span>
+                            <span class="detail-label">Campus Subnet:</span>
                             <span id="dispCampusIp" class="detail-value">10.x.x.x (College LAN)</span>
                         </div>
                         <div class="node-detail-item">
@@ -174,7 +172,7 @@
                         <h2>Laptop Intranet Gateway</h2>
                         <span class="badge">Host Role</span>
                     </div>
-                    <p class="section-desc">Access campus-only internal websites (attendance, grades, internal servers, labs) by routing requests through your friend's connected phone.</p>
+                    <p class="section-desc">Access internal university portals, lab servers, or student portals by routing requests through your friend's connected phone.</p>
 
                     <form id="proxyFetchForm" class="proxy-form">
                         <div class="input-group">
@@ -228,7 +226,7 @@
                 <div class="card-header">
                     <div class="header-left">
                         <h2>Embedded 10-Node Mock FTP Cluster</h2>
-                        <span class="badge live">Local In-Memory Cluster</span>
+                        <span class="badge">Local In-Memory Cluster</span>
                     </div>
                     <p class="card-subtitle">Zero-configuration testbed running on ports 2121 to 2130. You can simulate server crashes by stopping individual nodes and watching the fan-out retry mechanism in action!</p>
                 </div>
@@ -241,7 +239,7 @@
             <div class="glass-card" style="margin-top: 1.5rem;">
                 <div class="card-header">
                     <h2>Configured FTP Server Destinations</h2>
-                    <span class="badge">Production & Mock Nodes</span>
+                    <span class="badge">Target Configurations</span>
                 </div>
                 <div class="table-responsive">
                     <table class="glass-table">
@@ -266,8 +264,7 @@
     </main>
 
     <footer class="footer">
-        <div>Campus Nexus v1.0.0 • Producer-Consumer Fan-Out & Intranet Mesh Relay</div>
-        <div>Built for high-performance concurrent file distribution and campus network bridging</div>
+        <div>Campus Nexus • High-Performance Concurrent File Distribution & Campus Network Gateway</div>
     </footer>
 
     <script src="app.js"></script>
