@@ -44,31 +44,34 @@ public class RelayTunnelHandler extends TextWebSocketHandler {
         String sessionId = session.getId();
         URI uri = session.getUri();
 
-        String deviceName = "Campus Mobile Peer";
-        String campusIp = session.getRemoteAddress() != null ? session.getRemoteAddress().getAddress().getHostAddress() : "unknown";
+        String devName = "Campus Mobile Peer";
+        String ip = session.getRemoteAddress() != null ? session.getRemoteAddress().getAddress().getHostAddress() : "unknown";
 
         if (uri != null) {
             Map<String, String> queryParams = UriComponentsBuilder.fromUri(uri).build().getQueryParams().toSingleValueMap();
             if (queryParams.containsKey("deviceName")) {
-                deviceName = queryParams.get("deviceName");
+                devName = queryParams.get("deviceName");
             }
             if (queryParams.containsKey("campusIp")) {
-                campusIp = queryParams.get("campusIp");
+                ip = queryParams.get("campusIp");
             }
         }
+
+        final String finalDeviceName = devName;
+        final String finalCampusIp = ip;
 
         activeSessions.put(sessionId, session);
 
         Optional<RelayNode> existing = relayNodeRepository.findBySessionId(sessionId);
-        RelayNode node = existing.orElseGet(() -> new RelayNode(sessionId, deviceName, campusIp));
-        node.setDeviceName(deviceName);
-        node.setCampusIp(campusIp);
+        RelayNode node = existing.orElseGet(() -> new RelayNode(sessionId, finalDeviceName, finalCampusIp));
+        node.setDeviceName(finalDeviceName);
+        node.setCampusIp(finalCampusIp);
         node.setStatus("ONLINE");
         node.setConnectedAt(LocalDateTime.now());
         node.setLastPingAt(LocalDateTime.now());
         relayNodeRepository.save(node);
 
-        logger.info("New Campus Relay Node connected: {} [{}] (Session: {})", deviceName, campusIp, sessionId);
+        logger.info("New Campus Relay Node connected: {} [{}] (Session: {})", finalDeviceName, finalCampusIp, sessionId);
     }
 
     @Override
