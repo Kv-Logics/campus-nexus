@@ -11,7 +11,7 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATA_MONGODB_URI=mongodb+srv://muruga:muruga99@muruga.n9rrdn0.mongodb.net/campus_nexus?retryWrites=true&w=majority&appName=muruga
+      - SPRING_DATA_MONGODB_URI=${SPRING_DATA_MONGODB_URI}
       - APP_STORAGE_STAGING_DIR=/app/staging
       - APP_STORAGE_WORKER_THREADS=10
     volumes:

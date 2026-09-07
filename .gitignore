@@ -32,6 +32,15 @@ replay_pid*
 .settings/
 .vscode/
 
+# Environment files & Secrets
+.env
+*.env
+.env.local
+
+# Node modules for controller
+node_modules/
+
 # OS files
 .DS_Store
 Thumbs.db
+
