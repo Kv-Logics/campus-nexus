@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusNexus Cloud Power Controller</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-card: rgba(17, 24, 39, 0.85);
+      --border-card: rgba(255, 255, 255, 0.08);
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-amber: #f59e0b;
+      --accent-cyan: #06b6d4;
+      --accent-blue: #3b82f6;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background-image: 
+        radial-gradient(circle at 15% 20%, rgba(59, 130, 246, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(16, 185, 129, 0.08) 0%, transparent 40%);
+    }
+
+    .container {
+      width: 100%;
+      max-width: 480px;
+      background: var(--bg-card);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-card);
+      border-radius: 20px;
+      padding: 32px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border-card);
+    }
+
+    .logo-group h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .logo-group p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .cost-badge {
+      font-size: 0.72rem;
+      padding: 4px 10px;
+      border-radius: 9999px;
+      background: rgba(16, 185, 129, 0.12);
+      color: var(--accent-green);
+      font-weight: 600;
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-panel {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .status-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+
+    .status-running {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+    }
+    .status-running .dot {
+      background: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-green);
+      animation: pulse 2s infinite;
+    }
+
+    .status-stopped {
+      background: rgba(239, 68, 68, 0.12);
+      color: var(--accent-red);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .status-stopped .dot {
+      background: var(--accent-red);
+    }
+
+    .status-pending, .status-stopping {
+      background: rgba(245, 158, 11, 0.12);
+      color: var(--accent-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .status-pending .dot, .status-stopping .dot {
+      background: var(--accent-amber);
+      animation: pulse 1s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(1.15); }
+    }
+
+    .meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      padding: 6px 0;
+    }
+
+    .mono-val {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-main);
+      font-size: 0.8rem;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .input-group input {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--border-card);
+      border-radius: 10px;
+      padding: 12px 14px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: var(--accent-blue);
+    }
+
+    .action-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 14px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-start {
+      background: linear-gradient(135deg, #059669, #10b981);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.25);
+    }
+    .btn-start:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-stop {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+    }
+    .btn-stop:hover:not(:disabled) {
+      background: rgba(239, 68, 68, 0.25);
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+
+    .app-link-btn {
+      width: 100%;
+      background: rgba(59, 130, 246, 0.12);
+      color: #60a5fa;
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      text-decoration: none;
+      border-radius: 12px;
+      padding: 13px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 10px;
+      transition: all 0.2s ease;
+    }
+
+    .app-link-btn:hover {
+      background: rgba(59, 130, 246, 0.22);
+      color: #fff;
+    }
+
+    .log-banner {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 16px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="header">
+      <div class="logo-group">
+        <h1>CampusNexus Controller</h1>
+        <p>On-Demand Cloud Power Switch</p>
+      </div>
+      <div class="cost-badge" id="costBadge">EC2 Billing: Minimal</div>
+    </div>
+
+    <div class="status-panel">
+      <div class="status-row">
+        <span class="status-label">Instance Status</span>
+        <div class="status-pill status-stopped" id="statusPill">
+          <div class="dot"></div>
+          <span id="statusText">CHECKING...</span>
+        </div>
+      </div>
+      <div class="meta-row">
+        <span>Public IP</span>
+        <span class="mono-val" id="ipVal">None (Offline)</span>
+      </div>
+      <div class="meta-row">
+        <span>Instance ID</span>
+        <span class="mono-val" id="instIdVal">Configured</span>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label for="adminKey">Admin Security Key</label>
+      <input type="password" id="adminKey" placeholder="Enter your secret admin key" />
+    </div>
+
+    <div class="action-grid">
+      <button class="btn-start" id="startBtn" onclick="handlePower('start')">
+        Power ON
+      </button>
+      <button class="btn-stop" id="stopBtn" onclick="handlePower('stop')">
+        Power OFF
+      </button>
+    </div>
+
+    <div id="nexusLinkContainer" style="display: none;">
+      <a href="#" target="_blank" class="app-link-btn" id="nexusLink">
+        Launch CampusNexus Dashboard
+      </a>
+    </div>
+
+    <div class="log-banner" id="logBanner">Ready. Tap to control.</div>
+  </div>
+
+  <script>
+    const statusPill = document.getElementById("statusPill");
+    const statusText = document.getElementById("statusText");
+    const ipVal = document.getElementById("ipVal");
+    const instIdVal = document.getElementById("instIdVal");
+    const adminKeyInput = document.getElementById("adminKey");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const logBanner = document.getElementById("logBanner");
+    const nexusLinkContainer = document.getElementById("nexusLinkContainer");
+    const nexusLink = document.getElementById("nexusLink");
+    const costBadge = document.getElementById("costBadge");
+
+    // Restore saved admin key
+    if (localStorage.getItem("cn_admin_key")) {
+      adminKeyInput.value = localStorage.getItem("cn_admin_key");
+    }
+    adminKeyInput.addEventListener("input", () => {
+      localStorage.setItem("cn_admin_key", adminKeyInput.value.trim());
+    });
+
+    let pollInterval = null;
+
+    async function fetchStatus() {
+      try {
+        const res = await fetch("/api/status");
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || "Status check failed");
+        }
+        const data = await res.json();
+        updateUI(data.status, data.publicIp, data.instanceId);
+      } catch (e) {
+        statusText.textContent = "OFFLINE";
+        statusPill.className = "status-pill status-stopped";
+        logBanner.textContent = e.message;
+      }
+    }
+
+    function updateUI(status, publicIp, instanceId) {
+      statusText.textContent = status ? status.toUpperCase() : "UNKNOWN";
+      statusPill.className = `status-pill status-${status || 'stopped'}`;
+      instIdVal.textContent = instanceId || "Configured";
+
+      if (status === "running") {
+        ipVal.textContent = publicIp || "Allocating...";
+        startBtn.disabled = true;
+        stopBtn.disabled = false;
+        costBadge.textContent = "Compute Active (~$0.015/h)";
+        costBadge.style.color = "#10b981";
+
+        if (publicIp) {
+          nexusLinkContainer.style.display = "block";
+          nexusLink.href = `http://${publicIp}:8080`;
+        }
+      } else if (status === "stopped") {
+        ipVal.textContent = "None (Offline)";
+        startBtn.disabled = false;
+        stopBtn.disabled = true;
+        nexusLinkContainer.style.display = "none";
+        costBadge.textContent = "Compute: $0.00 / h (Saved)";
+        costBadge.style.color = "#9ca3af";
+      } else {
+        // pending or stopping
+        ipVal.textContent = status === "pending" ? "Booting up..." : "Shutting down...";
+        startBtn.disabled = true;
+        stopBtn.disabled = true;
+        nexusLinkContainer.style.display = "none";
+        costBadge.textContent = "Transitioning...";
+      }
+    }
+
+    async function handlePower(action) {
+      const key = adminKeyInput.value.trim();
+      logBanner.textContent = `Sending ${action.toUpperCase()} command...`;
+      startBtn.disabled = true;
+      stopBtn.disabled = true;
+
+      try {
+        const res = await fetch(`/api/${action}`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-admin-key": key
+          }
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.error || `Failed to ${action} instance`);
+        }
+
+        logBanner.textContent = `Success: Instance is now ${data.currentState || action + 'ing'}.`;
+        fetchStatus();
+
+        // Polling fast during transition
+        if (pollInterval) clearInterval(pollInterval);
+        pollInterval = setInterval(fetchStatus, 4000);
+        setTimeout(() => {
+          clearInterval(pollInterval);
+          pollInterval = setInterval(fetchStatus, 15000);
+        }, 60000);
+
+      } catch (err) {
+        logBanner.textContent = `Error: ${err.message}`;
+        fetchStatus();
+      }
+    }
+
+    // Initial load and periodic poll
+    fetchStatus();
+    pollInterval = setInterval(fetchStatus, 15000);
+  </script>
+</body>
+</html>

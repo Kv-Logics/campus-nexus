@@ -1,0 +1,12 @@
+{
+  "name": "campusnexus-ec2-controller",
+  "version": "1.0.0",
+  "description": "Vercel serverless controller to power on/off AWS EC2 instance on demand to minimize cloud costs",
+  "main": "api/status.js",
+  "scripts": {
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@aws-sdk/client-ec2": "^3.600.0"
+  }
+}
