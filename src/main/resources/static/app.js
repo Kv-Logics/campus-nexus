@@ -319,20 +319,77 @@ function initRelayNode() {
     const relayStatusDesc = document.getElementById('relayStatusDesc');
     const shareRelayUrlInput = document.getElementById('shareRelayUrlInput');
     const btnCopyRelayUrl = document.getElementById('btnCopyRelayUrl');
+    const lanIpBadge = document.getElementById('lanIpBadge');
+    const btnShareWhatsApp = document.getElementById('btnShareWhatsApp');
+    const btnToggleQrCode = document.getElementById('btnToggleQrCode');
+    const qrContainer = document.getElementById('qrCodeContainer');
+    const qrImg = document.getElementById('qrCodeImg');
+    const qrText = document.getElementById('qrCodeUrlText');
 
-    if (shareRelayUrlInput) {
-        shareRelayUrlInput.value = window.location.origin + '/relay.html';
+    let currentRelayShareUrl = window.location.origin + '/relay.html';
+
+    // Fetch real Wi-Fi LAN IP from backend
+    async function loadNetworkInfo() {
+        try {
+            const res = await fetch('/api/system/network-info');
+            if (res.ok) {
+                const info = await res.json();
+                if (info.primaryLanIp && info.primaryLanIp !== 'localhost' && info.primaryLanIp !== '127.0.0.1') {
+                    // Use actual machine Wi-Fi IP so friend on another device can connect!
+                    currentRelayShareUrl = `http://${info.primaryLanIp}:${info.port || 8080}/relay.html`;
+                    if (shareRelayUrlInput) shareRelayUrlInput.value = currentRelayShareUrl;
+                    if (lanIpBadge) lanIpBadge.textContent = `Wi-Fi: ${info.primaryLanIp}`;
+                    if (qrText) qrText.textContent = currentRelayShareUrl;
+                } else if (window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
+                    currentRelayShareUrl = window.location.origin + '/relay.html';
+                    if (shareRelayUrlInput) shareRelayUrlInput.value = currentRelayShareUrl;
+                    if (lanIpBadge) lanIpBadge.textContent = `Host: ${window.location.hostname}`;
+                } else {
+                    if (lanIpBadge) lanIpBadge.textContent = 'Localhost (LAN IP not detected)';
+                }
+            }
+        } catch (e) {
+            console.warn('Network info discovery failed:', e);
+        }
     }
+
+    loadNetworkInfo();
 
     if (btnCopyRelayUrl) {
         btnCopyRelayUrl.addEventListener('click', () => {
-            const url = shareRelayUrlInput ? shareRelayUrlInput.value : (window.location.origin + '/relay.html');
+            const url = shareRelayUrlInput ? shareRelayUrlInput.value : currentRelayShareUrl;
             navigator.clipboard.writeText(url).then(() => {
                 btnCopyRelayUrl.textContent = 'Copied!';
                 setTimeout(() => { btnCopyRelayUrl.textContent = 'Copy Link'; }, 2000);
             }).catch(() => {
                 alert('Link: ' + url);
             });
+        });
+    }
+
+    if (btnShareWhatsApp) {
+        btnShareWhatsApp.addEventListener('click', () => {
+            const url = shareRelayUrlInput ? shareRelayUrlInput.value : currentRelayShareUrl;
+            const message = encodeURIComponent(`Hey! Open this link on your phone while connected to campus Wi-Fi to act as a Campus Relay node: ${url}`);
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
+        });
+    }
+
+    if (btnToggleQrCode) {
+        btnToggleQrCode.addEventListener('click', () => {
+            if (qrContainer) {
+                const isHidden = qrContainer.classList.contains('hidden');
+                if (isHidden) {
+                    const url = shareRelayUrlInput ? shareRelayUrlInput.value : currentRelayShareUrl;
+                    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&data=${encodeURIComponent(url)}`;
+                    if (qrText) qrText.textContent = url;
+                    qrContainer.classList.remove('hidden');
+                    btnToggleQrCode.textContent = 'Hide QR Code';
+                } else {
+                    qrContainer.classList.add('hidden');
+                    btnToggleQrCode.innerHTML = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg> Scan QR Code`;
+                }
+            }
         });
     }
 
