@@ -134,33 +134,29 @@
                 <!-- Phone Relay Node Controller -->
                 <div class="glass-card">
                     <div class="card-header">
-                        <h2>Mobile Peer Node (Campus Wi-Fi)</h2>
-                        <span class="badge" id="mobileRoleBadge">Peer Role</span>
+                        <h2>Campus Relay Peer Gateway</h2>
+                        <span class="badge" id="mobileRoleBadge">Dedicated Page</span>
                     </div>
-                    <p class="section-desc">Friends on college Wi-Fi can open this page on their phone and toggle the relay switch below to become an active tunnel gateway.</p>
+                    <p class="section-desc">Friends on college Wi-Fi can open the dedicated mobile page on their phone to act as an active tunnel gateway.</p>
 
-                    <div class="relay-toggle-card">
+                    <div style="background:var(--bg-surface-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-md);padding:1.25rem;margin-bottom:1.25rem;">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--text-primary);margin-bottom:0.4rem;">Separate Peer Link:</div>
+                        <div class="input-group" style="margin-bottom:0.75rem;">
+                            <input type="text" id="shareRelayUrlInput" class="glass-input flex-1" readonly value="/relay.html">
+                            <button type="button" class="btn btn-primary" id="btnCopyRelayUrl">Copy Link</button>
+                        </div>
+                        <a href="/relay.html" target="_blank" class="btn btn-outline" style="width:100%;text-align:center;text-decoration:none;">
+                            Open Separate Relay Page &rarr;
+                        </a>
+                    </div>
+
+                    <div class="relay-toggle-card" style="margin-bottom:0;">
                         <div class="relay-status-orb" id="relayOrb"></div>
                         <div class="relay-status-text">
-                            <h3 id="relayStatusTitle">Relay Node Disconnected</h3>
-                            <p id="relayStatusDesc">Click below to establish a persistent WebSocket tunnel.</p>
+                            <h3 id="relayStatusTitle">Embedded Relay Control</h3>
+                            <p id="relayStatusDesc">You can also test connecting directly from this laptop browser tab.</p>
                         </div>
-                        <button class="btn btn-primary btn-large" id="btnToggleRelay">Connect as Campus Relay</button>
-                    </div>
-
-                    <div class="node-details-grid">
-                        <div class="node-detail-item">
-                            <span class="detail-label">Device Name:</span>
-                            <input type="text" id="inputDeviceName" class="glass-input" value="Campus Phone (Wi-Fi Node)">
-                        </div>
-                        <div class="node-detail-item">
-                            <span class="detail-label">Campus Subnet:</span>
-                            <span id="dispCampusIp" class="detail-value">10.x.x.x (College LAN)</span>
-                        </div>
-                        <div class="node-detail-item">
-                            <span class="detail-label">Tunnel Latency:</span>
-                            <span id="dispLatency" class="detail-value">-- ms</span>
-                        </div>
+                        <button class="btn btn-outline btn-large" id="btnToggleRelay">Connect as Campus Relay (Local)</button>
                     </div>
                 </div>
 

@@ -245,9 +245,24 @@ function initRelayNode() {
     const relayOrb = document.getElementById('relayOrb');
     const relayStatusTitle = document.getElementById('relayStatusTitle');
     const relayStatusDesc = document.getElementById('relayStatusDesc');
-    const dispCampusIp = document.getElementById('dispCampusIp');
-    const dispLatency = document.getElementById('dispLatency');
-    const inputDeviceName = document.getElementById('inputDeviceName');
+    const shareRelayUrlInput = document.getElementById('shareRelayUrlInput');
+    const btnCopyRelayUrl = document.getElementById('btnCopyRelayUrl');
+
+    if (shareRelayUrlInput) {
+        shareRelayUrlInput.value = window.location.origin + '/relay.html';
+    }
+
+    if (btnCopyRelayUrl) {
+        btnCopyRelayUrl.addEventListener('click', () => {
+            const url = shareRelayUrlInput ? shareRelayUrlInput.value : (window.location.origin + '/relay.html');
+            navigator.clipboard.writeText(url).then(() => {
+                btnCopyRelayUrl.textContent = 'Copied!';
+                setTimeout(() => { btnCopyRelayUrl.textContent = 'Copy Link'; }, 2000);
+            }).catch(() => {
+                alert('Link: ' + url);
+            });
+        });
+    }
 
     btnToggleRelay.addEventListener('click', () => {
         if (relaySocket && relaySocket.readyState === WebSocket.OPEN) {
@@ -258,10 +273,10 @@ function initRelayNode() {
     });
 
     function connectRelay() {
-        const deviceName = encodeURIComponent(inputDeviceName.value.trim() || 'Campus Mobile Peer');
+        const deviceName = 'Campus Host Node';
         const simulatedIp = '10.42.' + Math.floor(Math.random() * 200 + 1) + '.' + Math.floor(Math.random() * 250 + 1);
         const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = `${protocol}//${window.location.host}/ws/relay?deviceName=${deviceName}&campusIp=${simulatedIp}`;
+        const wsUrl = `${protocol}//${window.location.host}/ws/relay?deviceName=${encodeURIComponent(deviceName)}&campusIp=${simulatedIp}`;
 
         relaySocket = new WebSocket(wsUrl);
 
