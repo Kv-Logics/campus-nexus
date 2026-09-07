@@ -90,6 +90,7 @@ function initRelayStandalone() {
             }, 4000);
 
             addLog(`Tunnel established! Node: ${inputDeviceName.value.trim()} [${assignedCampusIp}]`, 'success');
+            localStorage.setItem('campus_nexus_relay_should_connect', 'true');
         };
 
         socket.onmessage = async (event) => {
@@ -140,20 +141,24 @@ function initRelayStandalone() {
         };
 
         socket.onclose = () => {
-            disconnect();
+            disconnect(false);
             addLog('Relay tunnel disconnected.', 'info');
         };
 
         socket.onerror = () => {
-            disconnect();
+            disconnect(false);
             addLog('WebSocket error encountered.', 'error');
         };
     }
 
-    function disconnect() {
+    function disconnect(userInitiated = true) {
         if (socket) {
             try { socket.close(); } catch (e) {}
             socket = null;
+        }
+
+        if (userInitiated) {
+            localStorage.setItem('campus_nexus_relay_should_connect', 'false');
         }
 
         clearInterval(heartbeatTimer);
@@ -172,6 +177,11 @@ function initRelayStandalone() {
         dispStatus.style.color = 'var(--text-muted)';
         dispLatency.textContent = '-- ms';
         dispUptime.textContent = '00:00:00';
+    }
+
+    // Auto-restore connection if user was connected before page refresh
+    if (localStorage.getItem('campus_nexus_relay_should_connect') === 'true') {
+        connect();
     }
 
     function updateUptime() {

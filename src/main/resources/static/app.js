@@ -7,20 +7,63 @@ document.addEventListener('DOMContentLoaded', () => {
     initMockCluster();
 });
 
-// NAVIGATION TABS
+// NAVIGATION TABS WITH REFRESH PERSISTENCE
 function initNavigation() {
     const tabs = document.querySelectorAll('.nav-tab');
+
+    function switchTab(targetId, updateUrl = true) {
+        const targetPane = document.getElementById(targetId);
+        const targetBtn = document.querySelector(`.nav-tab[data-tab="${targetId}"]`);
+        if (!targetPane || !targetBtn) return;
+
+        tabs.forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+
+        targetBtn.classList.add('active');
+        targetPane.classList.add('active');
+
+        // Save preference
+        localStorage.setItem('campus_nexus_active_tab', targetId);
+
+        if (updateUrl) {
+            const shortName = targetId.replace('-tab', '');
+            if (window.location.hash !== '#' + shortName) {
+                history.replaceState(null, null, '#' + shortName);
+            }
+        }
+    }
+
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
-            tabs.forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
-
-            tab.classList.add('active');
             const targetId = tab.getAttribute('data-tab');
-            const targetPane = document.getElementById(targetId);
-            if (targetPane) targetPane.classList.add('active');
+            switchTab(targetId, true);
         });
     });
+
+    // Handle initial tab selection on page load or refresh
+    function restoreActiveTab() {
+        const hash = window.location.hash.replace('#', '').trim();
+        if (hash) {
+            // Check if hash matches "servers", "relay", "distribution", or full id "servers-tab"
+            const fullTabId = hash.endsWith('-tab') ? hash : hash + '-tab';
+            const pane = document.getElementById(fullTabId);
+            if (pane) {
+                switchTab(fullTabId, false);
+                return;
+            }
+        }
+
+        // Fallback to localStorage
+        const savedTab = localStorage.getItem('campus_nexus_active_tab');
+        if (savedTab && document.getElementById(savedTab)) {
+            switchTab(savedTab, true);
+        }
+    }
+
+    restoreActiveTab();
+
+    // Listen for browser back / forward or manual hash changes
+    window.addEventListener('hashchange', restoreActiveTab);
 }
 
 // FILE INGESTION & UPLOAD
