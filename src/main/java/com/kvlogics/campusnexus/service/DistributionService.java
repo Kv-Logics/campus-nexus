@@ -42,7 +42,6 @@ public class DistributionService {
         this.ftpWorkerPool = ftpWorkerPool;
     }
 
-    @Transactional
     public List<TransferJob> fanOutDistribution(FileRecord fileRecord) {
         List<FtpServerConfig> servers = ftpServerConfigRepository.findByEnabledTrue();
         logger.info("Fanning out distribution of file '{}' (ID: {}) to {} enabled FTP servers...",
@@ -63,7 +62,7 @@ public class DistributionService {
         return jobs;
     }
 
-    public void executeJob(Long jobId) {
+    public void executeJob(String jobId) {
         TransferWorker worker = new TransferWorker(
                 jobId,
                 transferJobRepository,
@@ -74,8 +73,7 @@ public class DistributionService {
         ftpWorkerPool.submit(worker);
     }
 
-    @Transactional
-    public TransferJob retryJobManually(Long jobId) {
+    public TransferJob retryJobManually(String jobId) {
         TransferJob job = transferJobRepository.findById(jobId)
                 .orElseThrow(() -> new IllegalArgumentException("Transfer job not found with ID: " + jobId));
 

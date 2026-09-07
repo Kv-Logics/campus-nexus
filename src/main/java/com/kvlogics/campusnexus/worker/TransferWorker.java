@@ -17,13 +17,13 @@ public class TransferWorker implements Runnable {
 
     private static final Logger logger = LoggerFactory.getLogger(TransferWorker.class);
 
-    private final Long jobId;
+    private final String jobId;
     private final TransferJobRepository jobRepository;
     private final FtpClientService ftpClientService;
     private final FileStagingService stagingService;
     private final RetryService retryService;
 
-    public TransferWorker(Long jobId,
+    public TransferWorker(String jobId,
                           TransferJobRepository jobRepository,
                           FtpClientService ftpClientService,
                           FileStagingService stagingService,

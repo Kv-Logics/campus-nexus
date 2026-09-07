@@ -23,7 +23,7 @@ public class JobController {
     }
 
     @GetMapping
-    public List<TransferJob> getJobs(@RequestParam(value = "fileId", required = false) Long fileId) {
+    public List<TransferJob> getJobs(@RequestParam(value = "fileId", required = false) String fileId) {
         if (fileId != null) {
             return transferJobRepository.findByFileRecordId(fileId);
         }
@@ -31,7 +31,7 @@ public class JobController {
     }
 
     @PostMapping("/{id}/retry")
-    public ResponseEntity<?> retryJob(@PathVariable Long id) {
+    public ResponseEntity<?> retryJob(@PathVariable String id) {
         try {
             TransferJob job = distributionService.retryJobManually(id);
             return ResponseEntity.ok(Map.of("message", "Retry triggered successfully", "job", job));

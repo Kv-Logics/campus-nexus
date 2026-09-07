@@ -1,37 +1,21 @@
 package com.kvlogics.campusnexus.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
-@Entity
-@Table(name = "ftp_servers")
+@Document(collection = "ftp_servers")
 public class FtpServerConfig {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, unique = true)
     private String name;
-
-    @Column(nullable = false)
     private String host;
-
-    @Column(nullable = false)
     private int port;
-
-    @Column(nullable = false)
     private String username;
-
-    @Column(nullable = false)
     private String password;
-
-    @Column(nullable = false)
     private String remoteDir;
-
-    @Column(nullable = false)
     private String protocol; // FTP or FTPS
-
-    @Column(nullable = false)
     private boolean enabled;
 
     public FtpServerConfig() {
@@ -48,11 +32,11 @@ public class FtpServerConfig {
         this.enabled = enabled;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

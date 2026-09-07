@@ -37,7 +37,7 @@ public class FtpConfigController {
     }
 
     @PutMapping("/servers/{id}")
-    public ResponseEntity<?> updateServer(@PathVariable Long id, @RequestBody FtpServerConfig updatedConfig) {
+    public ResponseEntity<?> updateServer(@PathVariable String id, @RequestBody FtpServerConfig updatedConfig) {
         return ftpServerConfigRepository.findById(id).map(config -> {
             config.setName(updatedConfig.getName());
             config.setHost(updatedConfig.getHost());
@@ -69,7 +69,7 @@ public class FtpConfigController {
     }
 
     @PostMapping("/servers/{id}/toggle")
-    public ResponseEntity<?> toggleServer(@PathVariable Long id) {
+    public ResponseEntity<?> toggleServer(@PathVariable String id) {
         return ftpServerConfigRepository.findById(id).map(config -> {
             config.setEnabled(!config.isEnabled());
             ftpServerConfigRepository.save(config);
@@ -78,7 +78,7 @@ public class FtpConfigController {
     }
 
     @PostMapping("/servers/{id}/test")
-    public ResponseEntity<?> testServer(@PathVariable Long id) {
+    public ResponseEntity<?> testServer(@PathVariable String id) {
         return ftpServerConfigRepository.findById(id).map(config -> {
             boolean success = ftpClientService.testConnection(config);
             return ResponseEntity.ok(Map.of(

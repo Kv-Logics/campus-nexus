@@ -1,42 +1,34 @@
 package com.kvlogics.campusnexus.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.DBRef;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "transfer_jobs")
+@Document(collection = "transfer_jobs")
 public class TransferJob {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "file_id", nullable = false)
+    @DBRef
     private FileRecord fileRecord;
 
-    @ManyToOne(optional = false, fetch = FetchType.EAGER)
-    @JoinColumn(name = "ftp_server_id", nullable = false)
+    @DBRef
     private FtpServerConfig ftpServerConfig;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
     private JobStatus status;
-
-    @Column(nullable = false)
     private int attemptCount = 0;
-
-    @Column(nullable = false)
     private int maxAttempts = 3;
-
     private LocalDateTime startedAt;
-
     private LocalDateTime completedAt;
-
-    @Column(length = 2048)
     private String errorMessage;
 
     public TransferJob() {
+        this.status = JobStatus.PENDING;
+        this.attemptCount = 0;
+        this.maxAttempts = 3;
     }
 
     public TransferJob(FileRecord fileRecord, FtpServerConfig ftpServerConfig) {
@@ -47,11 +39,11 @@ public class TransferJob {
         this.maxAttempts = 3;
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

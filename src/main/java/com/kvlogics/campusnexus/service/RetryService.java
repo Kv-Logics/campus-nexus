@@ -23,7 +23,7 @@ public class RetryService {
         this.distributionServiceProvider = distributionServiceProvider;
     }
 
-    public void scheduleRetry(Long jobId, int completedAttemptCount) {
+    public void scheduleRetry(String jobId, int completedAttemptCount) {
         // Attempt 1 -> wait 5s, Attempt 2 -> wait 30s
         long delaySeconds = (completedAttemptCount == 1) ? 5 : 30;
 

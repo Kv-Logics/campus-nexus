@@ -1,35 +1,27 @@
 package com.kvlogics.campusnexus.model;
 
-import jakarta.persistence.*;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "relay_nodes")
+@Document(collection = "relay_nodes")
 public class RelayNode {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private String id;
 
-    @Column(nullable = false, unique = true)
     private String sessionId;
-
-    @Column(nullable = false)
     private String deviceName;
-
     private String campusIp;
-
-    @Column(nullable = false)
     private String status; // ONLINE, BUSY, OFFLINE
-
     private long latencyMs;
-
-    @Column(nullable = false)
     private LocalDateTime connectedAt;
-
     private LocalDateTime lastPingAt;
 
     public RelayNode() {
+        this.connectedAt = LocalDateTime.now();
+        this.lastPingAt = LocalDateTime.now();
     }
 
     public RelayNode(String sessionId, String deviceName, String campusIp) {
@@ -41,11 +33,11 @@ public class RelayNode {
         this.lastPingAt = LocalDateTime.now();
     }
 
-    public Long getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(String id) {
         this.id = id;
     }
 

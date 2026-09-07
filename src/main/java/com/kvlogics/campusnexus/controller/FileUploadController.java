@@ -59,7 +59,7 @@ public class FileUploadController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> getFile(@PathVariable Long id) {
+    public ResponseEntity<?> getFile(@PathVariable String id) {
         return fileRecordRepository.findById(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
