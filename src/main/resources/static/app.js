@@ -1,4 +1,11 @@
 // Campus Nexus Client Logic
+// Guard: External peers on campus Wi-Fi accessing the root dashboard are automatically restricted to the relay page
+if (window.location.hostname !== 'localhost' && 
+    window.location.hostname !== '127.0.0.1' && 
+    !window.location.search.includes('admin=true')) {
+    window.location.replace('/relay.html');
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     initNavigation();
     initFileUpload();

@@ -13,7 +13,10 @@ public class FtpServerConfig {
     private String host;
     private int port;
     private String username;
+
+    @com.fasterxml.jackson.annotation.JsonProperty(access = com.fasterxml.jackson.annotation.JsonProperty.Access.WRITE_ONLY)
     private String password;
+
     private String remoteDir;
     private String protocol; // FTP or FTPS
     private boolean enabled;
