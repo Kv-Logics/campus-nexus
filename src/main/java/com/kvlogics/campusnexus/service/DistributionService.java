@@ -43,8 +43,18 @@ public class DistributionService {
     }
 
     public List<TransferJob> fanOutDistribution(FileRecord fileRecord) {
-        List<FtpServerConfig> servers = ftpServerConfigRepository.findByEnabledTrue();
-        logger.info("Fanning out distribution of file '{}' (ID: {}) to {} enabled FTP servers...",
+        return fanOutDistributionToTargets(fileRecord, null);
+    }
+
+    public List<TransferJob> fanOutDistributionToTargets(FileRecord fileRecord, List<String> targetServerIds) {
+        List<FtpServerConfig> servers;
+        if (targetServerIds != null && !targetServerIds.isEmpty()) {
+            servers = ftpServerConfigRepository.findAllById(targetServerIds);
+        } else {
+            servers = ftpServerConfigRepository.findByEnabledTrue();
+        }
+
+        logger.info("Fanning out distribution of file '{}' (ID: {}) to {} selected FTP servers...",
                 fileRecord.getFilename(), fileRecord.getId(), servers.size());
 
         List<TransferJob> jobs = new ArrayList<>();

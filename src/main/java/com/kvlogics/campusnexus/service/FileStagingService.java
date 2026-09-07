@@ -74,6 +74,19 @@ public class FileStagingService {
         return new File(stagingPath);
     }
 
+    public boolean deleteStagedFile(String stagingPath) {
+        if (stagingPath == null || stagingPath.isBlank()) return false;
+        try {
+            Path path = Paths.get(stagingPath);
+            boolean deleted = Files.deleteIfExists(path);
+            logger.info("Deleted staged file '{}': {}", stagingPath, deleted);
+            return deleted;
+        } catch (IOException e) {
+            logger.warn("Failed to delete staged file '{}': {}", stagingPath, e.getMessage());
+            return false;
+        }
+    }
+
     public Path getStagingDirectory() {
         return stagingDirectory;
     }

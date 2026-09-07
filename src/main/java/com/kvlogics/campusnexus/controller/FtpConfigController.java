@@ -94,4 +94,29 @@ public class FtpConfigController {
             ));
         }).orElse(ResponseEntity.notFound().build());
     }
+
+    @PostMapping("/servers/batch-test")
+    public ResponseEntity<?> batchTestServers(@RequestBody(required = false) List<String> serverIds) {
+        List<FtpServerConfig> targets;
+        if (serverIds != null && !serverIds.isEmpty()) {
+            targets = ftpServerConfigRepository.findAllById(serverIds);
+        } else {
+            targets = ftpServerConfigRepository.findByEnabledTrue();
+        }
+
+        List<Map<String, Object>> results = targets.parallelStream().map(config -> {
+            boolean hasHost = config.getHost() != null && !config.getHost().isBlank();
+            boolean success = hasHost && ftpClientService.testConnection(config);
+            return Map.<String, Object>of(
+                    "serverId", config.getId(),
+                    "serverName", config.getName(),
+                    "host", config.getHost() != null ? config.getHost() : "",
+                    "port", config.getPort(),
+                    "ready", success,
+                    "message", !hasHost ? "Host unconfigured" : (success ? "Ready to accept file" : "Connection/Auth failed")
+            );
+        }).toList();
+
+        return ResponseEntity.ok(results);
+    }
 }

@@ -325,6 +325,69 @@
                 </form>
             </div>
         </div>
+
+        <!-- SELECT FTP DESTINATIONS & PREFLIGHT CHECK MODAL -->
+        <div id="dispatchModal" class="modal-backdrop hidden">
+            <div class="modal-card" style="max-width: 680px;">
+                <div class="modal-header">
+                    <div>
+                        <h3 id="dispatchModalTitle">Select Destination FTP Servers</h3>
+                        <p id="dispatchModalSubtitle" style="font-size:0.8rem;color:var(--text-muted);margin:0;">Select FTP servers and verify connection readiness before dispatching.</p>
+                    </div>
+                    <button type="button" class="btn-close-modal" id="btnCloseDispatchModal">✕</button>
+                </div>
+
+                <div style="padding: 1.25rem 1.4rem;">
+                    <!-- Staged File Summary -->
+                    <div style="background:var(--bg-surface-secondary);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);padding:0.85rem 1rem;margin-bottom:1rem;display:flex;justify-content:space-between;align-items:center;gap:1rem;">
+                        <div>
+                            <strong id="dispatchFileName" style="display:block;font-size:0.925rem;color:var(--text-primary);">filename.ext</strong>
+                            <span id="dispatchFileMeta" style="font-size:0.75rem;color:var(--text-muted);">Size: 0 MB • SHA-256: 000...</span>
+                        </div>
+                        <span class="badge" style="background:var(--success-bg);color:var(--success-text);border:1px solid var(--success-border);font-weight:700;">Staged Locally</span>
+                    </div>
+
+                    <!-- Server Selection Controls -->
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.6rem;">
+                        <div style="font-size:0.825rem;font-weight:700;">Choose Target FTP Nodes (1-10):</div>
+                        <div style="display:flex;gap:0.4rem;">
+                            <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem;font-size:0.72rem;" id="btnSelectAllTargets">Select All</button>
+                            <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem;font-size:0.72rem;" id="btnSelectConfiguredTargets">Select Configured</button>
+                            <button type="button" class="btn btn-outline" style="padding:0.25rem 0.6rem;font-size:0.72rem;" id="btnDeselectAllTargets">Deselect All</button>
+                        </div>
+                    </div>
+
+                    <!-- Targets List Table -->
+                    <div class="table-responsive" style="max-height:260px;overflow-y:auto;border:1px solid var(--border-subtle);border-radius:var(--radius-sm);margin-bottom:1.25rem;">
+                        <table class="glass-table" style="font-size:0.8rem;">
+                            <thead>
+                                <tr>
+                                    <th style="width:38px;text-align:center;"><input type="checkbox" id="chkDispatchMaster"></th>
+                                    <th>Target Server</th>
+                                    <th>Host : Port</th>
+                                    <th>Readiness Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="dispatchTargetsTableBody">
+                                <!-- Populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="modal-footer" style="padding:0;border:none;background:transparent;display:flex;justify-content:space-between;align-items:center;">
+                        <button type="button" class="btn btn-outline" id="btnCheckTargetReadiness">
+                            Check Readiness (Pre-Flight Test)
+                        </button>
+                        <div class="footer-actions">
+                            <button type="button" class="btn btn-outline" id="btnCancelDispatchModal">Cancel</button>
+                            <button type="button" class="btn btn-primary" id="btnConfirmDispatch">
+                                Send to Selected Servers
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </main>
 
     <footer class="footer">

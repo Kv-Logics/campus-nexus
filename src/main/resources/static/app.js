@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initJobPolling();
     initRelayNode();
     initMockCluster();
+    initDispatchModal();
 });
 
 // NAVIGATION TABS WITH REFRESH PERSISTENCE
@@ -127,14 +128,25 @@ function initFileUpload() {
         };
 
         xhr.onload = () => {
-            if (xhr.status === 202 || xhr.status === 200) {
-                uploadProgressPct.textContent = 'Staged & Fanned Out!';
+            if (xhr.status === 201 || xhr.status === 200 || xhr.status === 202) {
+                uploadProgressPct.textContent = 'Staged & SHA-256 Calculated!';
                 uploadProgressBar.style.background = 'var(--success)';
+
+                let respData = null;
+                try {
+                    respData = JSON.parse(xhr.responseText);
+                } catch (e) {}
+
                 setTimeout(() => {
                     progressContainer.classList.add('hidden');
                     uploadProgressBar.style.background = '';
-                }, 2500);
-                fetchFilesAndJobs();
+                }, 1200);
+
+                fetchFilesAndJobs().then(() => {
+                    if (respData && respData.file) {
+                        openDispatchModal(respData.file);
+                    }
+                });
             } else {
                 uploadProgressPct.textContent = 'Upload Failed';
                 uploadProgressBar.style.background = 'var(--danger)';
@@ -208,6 +220,12 @@ function renderMatrix() {
         const fileJobs = jobsCache.filter(j => j.fileRecord && j.fileRecord.id === file.id);
         const createdDate = new Date(file.createdAt).toLocaleString();
 
+        const jobsHtml = fileJobs.length > 0 
+            ? fileJobs.map(renderJobCard).join('')
+            : `<div style="grid-column: 1 / -1; background: var(--bg-surface-secondary); border: 1px dashed var(--border-medium); border-radius: var(--radius-sm); padding: 0.9rem; text-align: center; font-size: 0.8rem; color: var(--text-muted);">
+                 File staged and checksum verified. Click <strong>"Send to FTP Servers"</strong> above to select targets and check readiness.
+               </div>`;
+
         html += `
             <div class="file-card">
                 <div class="file-header">
@@ -218,15 +236,26 @@ function renderMatrix() {
                             <div class="file-meta">Staged size: ${formatBytes(file.fileSize)} • Staged at: ${createdDate}</div>
                         </div>
                     </div>
-                    <div class="checksum-pill" title="Cryptographic SHA-256 Checksum">
-                        <span>SHA-256:</span>
-                        <code>${file.sha256Checksum.substring(0, 16)}...</code>
-                        <button onclick="navigator.clipboard.writeText('${file.sha256Checksum}')" style="background:none;border:none;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;" title="Copy Full Hash"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                    <div class="file-actions" style="display:flex;align-items:center;gap:0.4rem;flex-wrap:wrap;">
+                        <div class="checksum-pill" title="Cryptographic SHA-256 Checksum">
+                            <span>SHA-256:</span>
+                            <code>${file.sha256Checksum.substring(0, 12)}...</code>
+                            <button onclick="navigator.clipboard.writeText('${file.sha256Checksum}')" style="background:none;border:none;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;" title="Copy Full Hash"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
+                        </div>
+                        <button class="btn btn-primary" style="padding:0.3rem 0.65rem;font-size:0.75rem;" onclick="openDispatchModalById('${file.id}')">
+                            Send to Servers
+                        </button>
+                        <a href="/api/files/${file.id}/download" class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;text-decoration:none;" download="${escapeHtml(file.filename)}" title="Retrieve / Download staged file">
+                            Download
+                        </a>
+                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;color:var(--danger-text);border-color:var(--danger-border);" onclick="deleteStagedFile('${file.id}', '${escapeHtml(file.filename)}')" title="Delete staged file and task">
+                            Delete
+                        </button>
                     </div>
                 </div>
 
                 <div class="jobs-grid">
-                    ${fileJobs.map(renderJobCard).join('')}
+                    ${jobsHtml}
                 </div>
             </div>
         `;
@@ -675,6 +704,217 @@ window.testFtpConnection = async function(id) {
         alert('Error testing connection');
     }
 };
+
+// DISPATCH / TARGET SELECTION MODAL & DELETE STAGED FILES
+let currentDispatchFile = null;
+
+function initDispatchModal() {
+    const modal = document.getElementById('dispatchModal');
+    const btnClose = document.getElementById('btnCloseDispatchModal');
+    const btnCancel = document.getElementById('btnCancelDispatchModal');
+    const btnConfirm = document.getElementById('btnConfirmDispatch');
+    const btnCheckReadiness = document.getElementById('btnCheckTargetReadiness');
+    const chkMaster = document.getElementById('chkDispatchMaster');
+
+    const btnSelectAll = document.getElementById('btnSelectAllTargets');
+    const btnSelectConfigured = document.getElementById('btnSelectConfiguredTargets');
+    const btnDeselectAll = document.getElementById('btnDeselectAllTargets');
+
+    const closeModal = () => {
+        if (modal) modal.classList.add('hidden');
+        currentDispatchFile = null;
+    };
+
+    if (btnClose) btnClose.addEventListener('click', closeModal);
+    if (btnCancel) btnCancel.addEventListener('click', closeModal);
+
+    if (chkMaster) {
+        chkMaster.addEventListener('change', () => {
+            document.querySelectorAll('.chk-target').forEach(cb => cb.checked = chkMaster.checked);
+        });
+    }
+
+    if (btnSelectAll) {
+        btnSelectAll.addEventListener('click', () => {
+            document.querySelectorAll('.chk-target').forEach(cb => cb.checked = true);
+            if (chkMaster) chkMaster.checked = true;
+        });
+    }
+
+    if (btnSelectConfigured) {
+        btnSelectConfigured.addEventListener('click', () => {
+            document.querySelectorAll('.chk-target').forEach(cb => {
+                const isConfigured = cb.getAttribute('data-configured') === 'true';
+                cb.checked = isConfigured;
+            });
+        });
+    }
+
+    if (btnDeselectAll) {
+        btnDeselectAll.addEventListener('click', () => {
+            document.querySelectorAll('.chk-target').forEach(cb => cb.checked = false);
+            if (chkMaster) chkMaster.checked = false;
+        });
+    }
+
+    if (btnCheckReadiness) {
+        btnCheckReadiness.addEventListener('click', async () => {
+            const selected = Array.from(document.querySelectorAll('.chk-target:checked')).map(cb => cb.value);
+            if (selected.length === 0) {
+                alert('Please select at least one FTP server to test readiness.');
+                return;
+            }
+
+            btnCheckReadiness.textContent = 'Testing sockets...';
+            btnCheckReadiness.disabled = true;
+
+            try {
+                // Update badges to checking state
+                selected.forEach(id => {
+                    const badge = document.getElementById(`readiness_${id}`);
+                    if (badge) badge.innerHTML = '<span class="badge" style="background:var(--warning-bg);color:var(--warning-text);">Checking...</span>';
+                });
+
+                const res = await fetch('/api/ftp/servers/batch-test', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(selected)
+                });
+
+                if (res.ok) {
+                    const results = await res.json();
+                    let readyCount = 0;
+                    results.forEach(r => {
+                        const badge = document.getElementById(`readiness_${r.serverId}`);
+                        if (badge) {
+                            if (r.ready) {
+                                readyCount++;
+                                badge.innerHTML = '<span class="status-indicator live">Ready to accept</span>';
+                            } else {
+                                badge.innerHTML = `<span class="badge" style="background:var(--danger-bg);color:var(--danger-text);border:1px solid var(--danger-border);">${escapeHtml(r.message)}</span>`;
+                            }
+                        }
+                    });
+                    btnCheckReadiness.textContent = `Check Readiness (${readyCount}/${results.length} Ready)`;
+                } else {
+                    alert('Readiness check failed');
+                    btnCheckReadiness.textContent = 'Check Readiness (Pre-Flight Test)';
+                }
+            } catch (err) {
+                alert('Readiness check error: ' + err.message);
+                btnCheckReadiness.textContent = 'Check Readiness (Pre-Flight Test)';
+            } finally {
+                btnCheckReadiness.disabled = false;
+            }
+        });
+    }
+
+    if (btnConfirm) {
+        btnConfirm.addEventListener('click', async () => {
+            if (!currentDispatchFile) return;
+
+            const selected = Array.from(document.querySelectorAll('.chk-target:checked')).map(cb => cb.value);
+            if (selected.length === 0) {
+                alert('Please select at least one FTP server destination.');
+                return;
+            }
+
+            btnConfirm.textContent = 'Dispatching...';
+            btnConfirm.disabled = true;
+
+            try {
+                const res = await fetch(`/api/files/${currentDispatchFile.id}/distribute`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ serverIds: selected })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    closeModal();
+                    fetchFilesAndJobs();
+                    alert(`Successfully dispatched "${currentDispatchFile.filename}" to ${data.jobsCreated} target FTP server(s)!`);
+                } else {
+                    alert('Failed to dispatch file: ' + await res.text());
+                }
+            } catch (err) {
+                alert('Error dispatching file: ' + err.message);
+            } finally {
+                btnConfirm.textContent = 'Send to Selected Servers';
+                btnConfirm.disabled = false;
+            }
+        });
+    }
+}
+
+window.openDispatchModalById = function(fileId) {
+    const file = filesCache.find(f => f.id === fileId);
+    if (file) {
+        openDispatchModal(file);
+    }
+};
+
+window.openDispatchModal = function(file) {
+    currentDispatchFile = file;
+    const modal = document.getElementById('dispatchModal');
+    if (!modal) return;
+
+    document.getElementById('dispatchFileName').textContent = file.filename;
+    document.getElementById('dispatchFileMeta').textContent = `Size: ${formatBytes(file.fileSize)} • Staged: ${new Date(file.createdAt).toLocaleString()} • SHA-256: ${file.sha256Checksum.substring(0, 24)}...`;
+
+    const tbody = document.getElementById('dispatchTargetsTableBody');
+    const chkMaster = document.getElementById('chkDispatchMaster');
+    if (chkMaster) chkMaster.checked = false;
+
+    // Reset readiness button label
+    const btnCheckReadiness = document.getElementById('btnCheckTargetReadiness');
+    if (btnCheckReadiness) btnCheckReadiness.textContent = 'Check Readiness (Pre-Flight Test)';
+
+    tbody.innerHTML = ftpServersCache.map(s => {
+        const isConfigured = Boolean(s.host && s.host.trim());
+        const isSuggested = s.host === 'ftp.amritanet.edu' || (s.name && s.name.includes('Amrita'));
+        const hostDisplay = isConfigured 
+            ? `<code>${escapeHtml(s.host)}:${s.port || 21}</code>`
+            : `<span style="color:var(--text-dim);font-style:italic;">Not configured</span>`;
+
+        return `
+            <tr>
+                <td style="text-align:center;">
+                    <input type="checkbox" class="chk-target" value="${s.id}" data-configured="${isConfigured}" ${isConfigured ? 'checked' : ''}>
+                </td>
+                <td>
+                    <strong>${escapeHtml(s.name)}</strong>
+                    ${isSuggested ? '<span class="badge" style="background:var(--primary-light);color:var(--primary);margin-left:0.35rem;font-size:0.68rem;font-weight:700;">Suggested</span>' : ''}
+                </td>
+                <td>${hostDisplay}</td>
+                <td id="readiness_${s.id}">
+                    <span class="badge" style="background:var(--pending-bg);color:var(--pending-text);">${isConfigured ? 'Pending Check' : 'Unconfigured'}</span>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    modal.classList.remove('hidden');
+};
+
+window.deleteStagedFile = async function(fileId, filename) {
+    if (!confirm(`Are you sure you want to delete staged file "${filename}" and all its associated transfer tasks?`)) {
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/files/${fileId}`, { method: 'DELETE' });
+        if (res.ok) {
+            fetchFilesAndJobs();
+        } else {
+            alert('Failed to delete staged file: ' + await res.text());
+        }
+    } catch (err) {
+        alert('Error deleting staged file: ' + err.message);
+    }
+};
+
+
 
 // UTILITIES
 function formatBytes(bytes) {
