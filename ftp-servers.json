@@ -1,7 +1,7 @@
 [
   {
-    "name": "FTP-01",
-    "host": "",
+    "name": "FTP-01 (Amrita Campus FTP)",
+    "host": "ftp.amritanet.edu",
     "port": 21,
     "username": "",
     "password": "",

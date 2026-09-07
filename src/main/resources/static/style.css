@@ -19,14 +19,17 @@
     --text-muted: #64748b;
     --text-dim: #94a3b8;
     
+    --success: #10b981;
     --success-bg: #ecfdf5;
     --success-text: #059669;
     --success-border: #a7f3d0;
     
+    --warning: #f59e0b;
     --warning-bg: #fffbeb;
     --warning-text: #d97706;
     --warning-border: #fde68a;
     
+    --danger: #dc2626;
     --danger-bg: #fef2f2;
     --danger-text: #dc2626;
     --danger-border: #fecaca;
@@ -624,6 +627,17 @@ body {
     font-size: 0.95rem;
     font-weight: 700;
     border-radius: var(--radius-md);
+}
+
+.btn-danger {
+    background: var(--danger) !important;
+    color: #ffffff !important;
+    border: 1px solid var(--danger) !important;
+}
+
+.btn-danger:hover {
+    background: #b91c1c !important;
+    border-color: #b91c1c !important;
 }
 
 /* RELAY PORTAL */

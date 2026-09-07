@@ -328,7 +328,9 @@ function initRelayNode() {
             relayStatusTitle.textContent = 'Relay Node Connected (Active Bridge)';
             relayStatusDesc.textContent = 'Your phone is acting as a campus tunnel for intranet requests.';
             btnToggleRelay.textContent = 'Disconnect Relay Node';
-            btnToggleRelay.style.background = 'var(--danger)';
+            btnToggleRelay.className = 'btn btn-danger btn-large';
+            btnToggleRelay.style.background = '';
+            btnToggleRelay.style.color = '';
             dispCampusIp.textContent = simulatedIp;
 
             // Start heartbeat ping
@@ -405,13 +407,26 @@ function initRelayNode() {
             heartbeatTimer = null;
         }
         relayOrb.classList.remove('online');
-        relayStatusTitle.textContent = 'Relay Node Disconnected';
-        relayStatusDesc.textContent = 'Click below to establish a persistent WebSocket tunnel.';
-        btnToggleRelay.textContent = 'Connect as Campus Relay';
+        relayStatusTitle.textContent = 'Embedded Relay Control';
+        relayStatusDesc.textContent = 'You can also test connecting directly from this laptop browser tab.';
+        btnToggleRelay.textContent = 'Connect as Campus Relay (Local)';
+        btnToggleRelay.className = 'btn btn-outline btn-large';
         btnToggleRelay.style.background = '';
+        btnToggleRelay.style.color = '';
         dispLatency.textContent = '-- ms';
         fetchRelayNodes();
     }
+
+    // Suggestion pills for Intranet URL input
+    document.querySelectorAll('.btn-suggest-url').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const urlInput = document.getElementById('proxyUrlInput');
+            if (urlInput) {
+                urlInput.value = btn.getAttribute('data-url');
+                urlInput.focus();
+            }
+        });
+    });
 
     // Host Intranet Fetch Form
     const proxyFetchForm = document.getElementById('proxyFetchForm');
@@ -583,6 +598,18 @@ function initFtpEditModal() {
     const closeModal = () => modal.classList.add('hidden');
     btnClose.addEventListener('click', closeModal);
     btnCancel.addEventListener('click', closeModal);
+
+    const btnPresetAmrita = document.getElementById('btnPresetAmrita');
+    if (btnPresetAmrita) {
+        btnPresetAmrita.addEventListener('click', () => {
+            document.getElementById('editHost').value = 'ftp.amritanet.edu';
+            document.getElementById('editPort').value = '21';
+            const nameField = document.getElementById('editServerName');
+            if (!nameField.value.includes('Amrita')) {
+                nameField.value = nameField.value ? `${nameField.value} (Amrita Campus FTP)` : 'Amrita Campus FTP (FTP-01)';
+            }
+        });
+    }
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
