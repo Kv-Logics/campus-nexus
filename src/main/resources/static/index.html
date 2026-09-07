@@ -12,25 +12,25 @@
 <body>
     <header class="navbar">
         <div class="brand">
-            <div class="logo-icon">⚡</div>
+            <div class="logo-icon">CN</div>
             <div>
                 <div class="brand-title">Campus Nexus</div>
-                <div class="brand-subtitle">High-Speed Fan-Out & Intranet Mesh Hub</div>
+                <div class="brand-subtitle">High-Speed Fan-Out & Intranet Relay Gateway</div>
             </div>
         </div>
         <nav class="nav-tabs">
             <button class="nav-tab active" data-tab="distribution-tab" id="tabBtnDistribution">
-                <span class="icon">📦</span> File Distribution
+                File Distribution
             </button>
             <button class="nav-tab" data-tab="relay-tab" id="tabBtnRelay">
-                <span class="icon">📡</span> Intranet Relay
+                Intranet Relay
             </button>
             <button class="nav-tab" data-tab="servers-tab" id="tabBtnServers">
-                <span class="icon">🖥️</span> FTP Targets & Cluster
+                FTP Targets
             </button>
         </nav>
         <div class="header-status">
-            <span class="status-indicator live" id="clusterStatusBadge">10/10 FTP Nodes Live</span>
+            <span class="status-indicator" id="clusterStatusBadge">0/10 Targets Active</span>
         </div>
     </header>
 
@@ -48,7 +48,6 @@
 
                     <div class="drop-zone" id="dropZone">
                         <input type="file" id="fileInput" class="file-input-hidden">
-                        <div class="drop-icon">📁</div>
                         <h3>Choose a file or drag & drop here</h3>
                         <p>or <button type="button" class="btn-browse" id="btnBrowse">browse files</button></p>
                         <div class="drop-hint">Supports PDF, ZIP, ISO, Media, Documents (up to 500MB)</div>
@@ -95,12 +94,12 @@
                             <div class="step-num">1</div>
                             <div class="step-txt"><strong>Ingest & Stage</strong><br>SHA-256 Digest</div>
                         </div>
-                        <div class="flow-arrow">➔</div>
+                        <div class="flow-arrow">&rarr;</div>
                         <div class="flow-step">
                             <div class="step-num">2</div>
                             <div class="step-txt"><strong>Fan-Out Queue</strong><br>10 Target Jobs</div>
                         </div>
-                        <div class="flow-arrow">➔</div>
+                        <div class="flow-arrow">&rarr;</div>
                         <div class="flow-step">
                             <div class="step-num">3</div>
                             <div class="step-txt"><strong>Bounded I/O Pool</strong><br>Parallel Sockets</div>
@@ -117,14 +116,13 @@
                         <span class="badge">Live Sync</span>
                     </div>
                     <div class="header-actions">
-                        <button class="btn btn-outline" id="btnRefreshJobs">⟳ Refresh</button>
+                        <button class="btn btn-outline" id="btnRefreshJobs">Refresh</button>
                     </div>
                 </div>
 
                 <div id="fileMatrixContainer" class="file-matrix-container">
                     <div class="empty-state" id="emptyStateMsg">
-                        <div class="empty-icon">📂</div>
-                        <p>No distribution tasks running. Upload a file above to trigger concurrent 10-node fan-out!</p>
+                        <p>No distribution tasks running. Upload a file above to trigger concurrent 10-node fan-out.</p>
                     </div>
                 </div>
             </div>
@@ -220,13 +218,13 @@
             </div>
         </section>
 
-        <!-- TAB 3: FTP SERVERS CONFIGURATION -->
+        <!-- TAB 3: PRODUCTION FTP SERVERS CONFIGURATION -->
         <section id="servers-tab" class="tab-pane">
             <div class="glass-card">
                 <div class="card-header">
                     <div>
                         <h2>Production FTP Server Configurations (FTP-01 to FTP-10)</h2>
-                        <p class="section-desc" style="margin-bottom: 0;">Configure your live FTP destinations. All servers are <strong>OFF (Disabled) by default</strong>. Click <strong>Edit</strong> on any server to set real credentials and switch it on.</p>
+                        <p class="section-desc" style="margin-bottom: 0;">Configure your live destination FTP servers. All nodes are <strong>Disabled by default</strong>. Click <strong>Edit</strong> on any server to set real host IP/domain, credentials, and remote storage paths.</p>
                     </div>
                     <div class="header-actions">
                         <button class="btn btn-outline" id="btnDisableAllFtp">Turn All Off</button>
@@ -247,23 +245,9 @@
                             </tr>
                         </thead>
                         <tbody id="ftpServersTableBody">
-                            <!-- Populated dynamically with edit controls -->
+                            <!-- Populated dynamically with live production controls -->
                         </tbody>
                     </table>
-                </div>
-            </div>
-
-            <div class="glass-card" style="margin-top: 1.5rem;">
-                <div class="card-header">
-                    <div class="header-left">
-                        <h2>Local Testing Cluster (Ports 2121 to 2130)</h2>
-                        <span class="badge">Optional Sandbox</span>
-                    </div>
-                    <p class="card-subtitle">Embedded in-memory FTP nodes for local dry-runs when physical remote FTP servers are not yet reachable.</p>
-                </div>
-
-                <div class="cluster-grid" id="mockClusterGrid">
-                    <!-- Populated dynamically with 10 nodes -->
                 </div>
             </div>
         </section>
@@ -325,7 +309,7 @@
                     </div>
 
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline" id="btnTestModalConnection">🔌 Test Connection</button>
+                        <button type="button" class="btn btn-outline" id="btnTestModalConnection">Test Connection</button>
                         <div class="footer-actions">
                             <button type="button" class="btn btn-outline" id="btnCancelModal">Cancel</button>
                             <button type="submit" class="btn btn-primary" id="btnSaveModal">Save Configuration</button>

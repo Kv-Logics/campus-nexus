@@ -45,13 +45,6 @@
             <version>${commons-net.version}</version>
         </dependency>
 
-        <!-- MockFtpServer for testing and embedded local mock cluster -->
-        <dependency>
-            <groupId>org.mockftpserver</groupId>
-            <artifactId>MockFtpServer</artifactId>
-            <version>${mockftpserver.version}</version>
-        </dependency>
-
         <!-- Test Starters -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

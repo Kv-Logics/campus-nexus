@@ -153,7 +153,7 @@ function renderMatrix() {
     if (!filesCache || filesCache.length === 0) {
         container.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📁</div>
+                <div class="empty-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg></div>
                 <p>No files uploaded yet. Drag & drop a file above to trigger the 10-node fan-out distribution!</p>
             </div>
         `;
@@ -169,7 +169,7 @@ function renderMatrix() {
             <div class="file-card">
                 <div class="file-header">
                     <div class="file-title-area">
-                        <div class="file-icon">📄</div>
+                        <div class="file-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div>
                         <div>
                             <div class="file-name">${escapeHtml(file.filename)}</div>
                             <div class="file-meta">Staged size: ${formatBytes(file.fileSize)} • Staged at: ${createdDate}</div>
@@ -178,7 +178,7 @@ function renderMatrix() {
                     <div class="checksum-pill" title="Cryptographic SHA-256 Checksum">
                         <span>SHA-256:</span>
                         <code>${file.sha256Checksum.substring(0, 16)}...</code>
-                        <button onclick="navigator.clipboard.writeText('${file.sha256Checksum}')" style="background:none;border:none;color:var(--primary);cursor:pointer;" title="Copy Full Hash">📋</button>
+                        <button onclick="navigator.clipboard.writeText('${file.sha256Checksum}')" style="background:none;border:none;color:var(--primary);cursor:pointer;display:inline-flex;align-items:center;" title="Copy Full Hash"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg></button>
                     </div>
                 </div>
 
@@ -205,7 +205,7 @@ function renderJobCard(job) {
 
     let retryBtn = '';
     if (isFailed) {
-        retryBtn = `<button class="btn-retry" onclick="triggerRetry(${job.id})">⟳ Retry</button>`;
+        retryBtn = `<button class="btn-retry" onclick="triggerRetry('${job.id}')">Retry</button>`;
     }
 
     return `
@@ -304,7 +304,7 @@ function initRelayNode() {
                         // Return simulated intranet portal response if URL is unreachable locally
                         status = 200;
                         body = `<div style="font-family:sans-serif;padding:20px;background:#fff;color:#111;border-radius:8px;">
-                            <h2 style="color:#1e3a8a;">🎓 College Intranet Portal (Relayed via ${escapeHtml(inputDeviceName.value)})</h2>
+                            <h2 style="color:#1e3a8a;">College Intranet Portal (Relayed via ${escapeHtml(inputDeviceName.value)})</h2>
                             <p><strong>Subnet:</strong> ${simulatedIp} • <strong>Target URL:</strong> ${escapeHtml(msg.url)}</p>
                             <hr style="margin:15px 0;">
                             <div style="background:#f0fdf4;padding:12px;border:1px solid #86efac;border-radius:6px;">
@@ -422,15 +422,13 @@ async function fetchRelayNodes() {
     }
 }
 
-// MOCK CLUSTER & FTP SERVERS MANAGER
+// PRODUCTION FTP SERVERS MANAGER
 let ftpServersCache = [];
 
 function initMockCluster() {
-    fetchClusterStatus();
     fetchFtpServers();
     initFtpEditModal();
     initBatchFtpControls();
-    setInterval(fetchClusterStatus, 4000);
 }
 
 function initBatchFtpControls() {
@@ -439,7 +437,7 @@ function initBatchFtpControls() {
 
     if (btnDisableAll) {
         btnDisableAll.addEventListener('click', async () => {
-            if (confirm('Turn off all 10 FTP destinations?')) {
+            if (confirm('Disable all 10 FTP destinations?')) {
                 await fetch('/api/ftp/servers/disable-all', { method: 'POST' });
                 fetchFtpServers();
             }
@@ -454,79 +452,45 @@ function initBatchFtpControls() {
     }
 }
 
-async function fetchClusterStatus() {
-    try {
-        const res = await fetch('/api/ftp/mock-cluster');
-        if (res.ok) {
-            const cluster = await res.json();
-            const grid = document.getElementById('mockClusterGrid');
-            const badge = document.getElementById('clusterStatusBadge');
-
-            let runningCount = 0;
-            let html = '';
-
-            for (let port = 2121; port <= 2130; port++) {
-                const isRunning = cluster[port] === true;
-                if (isRunning) runningCount++;
-                const serverIndex = port - 2120;
-                const paddedIndex = serverIndex < 10 ? '0' + serverIndex : serverIndex;
-
-                html += `
-                    <div class="cluster-card">
-                        <div class="cluster-header">
-                            <span class="cluster-name">Mock FTP-${paddedIndex}</span>
-                            <span class="status-indicator ${isRunning ? 'live' : ''}">${isRunning ? 'Online' : 'Stopped'}</span>
-                        </div>
-                        <div class="cluster-port">Port: <strong>${port}</strong></div>
-                        <button class="btn ${isRunning ? 'btn-outline' : 'btn-primary'}" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="toggleMockServer(${port})">
-                            ${isRunning ? '🛑 Stop Node' : '▶️ Start Node'}
-                        </button>
-                    </div>
-                `;
-            }
-
-            grid.innerHTML = html;
-            badge.textContent = `${runningCount}/10 FTP Nodes Live`;
-        }
-    } catch (e) {
-        console.error('Failed to fetch mock cluster status:', e);
-    }
-}
-
-window.toggleMockServer = async function(port) {
-    try {
-        await fetch(`/api/ftp/mock-cluster/${port}/toggle`, { method: 'POST' });
-        fetchClusterStatus();
-    } catch (e) {
-        alert('Failed to toggle server on port ' + port);
-    }
-};
-
 async function fetchFtpServers() {
     try {
         const res = await fetch('/api/ftp/servers');
         if (res.ok) {
             ftpServersCache = await res.json();
             const tbody = document.getElementById('ftpServersTableBody');
-            tbody.innerHTML = ftpServersCache.map(s => `
-                <tr>
-                    <td><strong>${escapeHtml(s.name)}</strong></td>
-                    <td><code>${escapeHtml(s.host)}:${s.port}</code></td>
-                    <td>${escapeHtml(s.username)}</td>
-                    <td><code>${escapeHtml(s.remoteDir)}</code></td>
-                    <td><span class="badge">${s.protocol}</span></td>
-                    <td>
-                        <span class="status-indicator ${s.enabled ? 'live' : ''}">${s.enabled ? 'Active' : 'Disabled'}</span>
-                    </td>
-                    <td style="text-align: right; white-space: nowrap;">
-                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;" onclick="openEditModal(${s.id})">✏️ Edit</button>
-                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="testFtpConnection(${s.id})">🔌 Test</button>
-                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="toggleFtpServer(${s.id})">
-                            ${s.enabled ? 'Disable' : 'Enable'}
-                        </button>
-                    </td>
-                </tr>
-            `).join('');
+            const badge = document.getElementById('clusterStatusBadge');
+
+            const activeCount = ftpServersCache.filter(s => s.enabled).length;
+            if (badge) {
+                badge.textContent = `${activeCount}/10 Targets Active`;
+                badge.className = `status-indicator ${activeCount > 0 ? 'live' : ''}`;
+            }
+
+            tbody.innerHTML = ftpServersCache.map(s => {
+                const hostDisplay = s.host ? `<code>${escapeHtml(s.host)}:${s.port || 21}</code>` : `<span style="color:var(--text-dim);font-size:0.75rem;font-style:italic;">Not configured (click Edit)</span>`;
+                const userDisplay = s.username ? escapeHtml(s.username) : `<span style="color:var(--text-dim);font-size:0.75rem;">—</span>`;
+                const dirDisplay = s.remoteDir ? `<code>${escapeHtml(s.remoteDir)}</code>` : `<code>/</code>`;
+
+                return `
+                    <tr>
+                        <td><strong>${escapeHtml(s.name)}</strong></td>
+                        <td>${hostDisplay}</td>
+                        <td>${userDisplay}</td>
+                        <td>${dirDisplay}</td>
+                        <td><span class="badge">${s.protocol || 'FTP'}</span></td>
+                        <td>
+                            <span class="status-indicator ${s.enabled ? 'live' : ''}">${s.enabled ? 'Active' : 'Disabled'}</span>
+                        </td>
+                        <td style="text-align: right; white-space: nowrap;">
+                            <button class="btn btn-primary" style="padding:0.3rem 0.65rem;font-size:0.75rem;" onclick="openEditModal('${s.id}')">Edit</button>
+                            <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="testFtpConnection('${s.id}')">Test</button>
+                            <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="toggleFtpServer('${s.id}')">
+                                ${s.enabled ? 'Disable' : 'Enable'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
         }
     } catch (e) {
         console.error('Failed to fetch FTP servers:', e);
@@ -602,7 +566,7 @@ function initFtpEditModal() {
         try {
             await testFtpConnection(id);
         } finally {
-            btnTestModal.textContent = '🔌 Test Connection';
+            btnTestModal.textContent = 'Test Connection';
             btnTestModal.disabled = false;
         }
     });

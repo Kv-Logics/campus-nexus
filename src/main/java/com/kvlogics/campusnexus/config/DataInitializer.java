@@ -10,6 +10,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -26,37 +27,44 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        if (ftpServerConfigRepository.count() == 0) {
+        List<FtpServerConfig> existing = ftpServerConfigRepository.findAll();
+
+        // Check if existing data contains mock data (ports 2121-2130 or user 'ftpuser')
+        boolean hasMockData = existing.stream().anyMatch(s -> s.getPort() > 2100 || "ftpuser".equalsIgnoreCase(s.getUsername()));
+
+        if (existing.isEmpty() || hasMockData) {
+            logger.info("Purging old mock data and initializing 10 clean production FTP templates (Port 21, Disabled)...");
+            ftpServerConfigRepository.deleteAll();
+
             File configFile = new File("ftp-servers.json");
             if (configFile.exists()) {
                 try {
-                    logger.info("Loading FTP destinations from 'ftp-servers.json'...");
                     List<FtpServerConfig> servers = objectMapper.readValue(configFile, new TypeReference<List<FtpServerConfig>>() {});
                     ftpServerConfigRepository.saveAll(servers);
-                    logger.info("Successfully loaded {} FTP server configurations from ftp-servers.json", servers.size());
+                    logger.info("Successfully initialized {} production FTP server configurations from ftp-servers.json", servers.size());
                     return;
                 } catch (Exception e) {
-                    logger.warn("Could not parse ftp-servers.json, falling back to default seed: {}", e.getMessage());
+                    logger.warn("Could not parse ftp-servers.json: {}", e.getMessage());
                 }
             }
 
-            logger.info("Seeding 10 default FTP server destinations (ports 2121-2130)...");
+            // Fallback: 10 production entries (all port 21, all disabled)
+            List<FtpServerConfig> defaultProdServers = new ArrayList<>();
             for (int i = 1; i <= 10; i++) {
                 String name = String.format("FTP-%02d", i);
-                int port = 2120 + i;
-                FtpServerConfig config = new FtpServerConfig(
+                defaultProdServers.add(new FtpServerConfig(
                         name,
-                        "127.0.0.1",
+                        "",
                         21,
-                        "ftpuser",
+                        "",
                         "",
                         "/",
                         "FTP",
                         false
-                );
-                ftpServerConfigRepository.save(config);
+                ));
             }
-            logger.info("Successfully seeded 10 FTP servers.");
+            ftpServerConfigRepository.saveAll(defaultProdServers);
+            logger.info("Successfully seeded 10 production FTP servers (all disabled).");
         }
     }
 }

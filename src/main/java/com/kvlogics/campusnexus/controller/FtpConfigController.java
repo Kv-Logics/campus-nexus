@@ -1,6 +1,5 @@
 package com.kvlogics.campusnexus.controller;
 
-import com.kvlogics.campusnexus.mock.MockFtpClusterService;
 import com.kvlogics.campusnexus.model.FtpServerConfig;
 import com.kvlogics.campusnexus.repository.FtpServerConfigRepository;
 import com.kvlogics.campusnexus.service.FtpClientService;
@@ -16,14 +15,11 @@ public class FtpConfigController {
 
     private final FtpServerConfigRepository ftpServerConfigRepository;
     private final FtpClientService ftpClientService;
-    private final MockFtpClusterService mockFtpClusterService;
 
     public FtpConfigController(FtpServerConfigRepository ftpServerConfigRepository,
-                               FtpClientService ftpClientService,
-                               MockFtpClusterService mockFtpClusterService) {
+                               FtpClientService ftpClientService) {
         this.ftpServerConfigRepository = ftpServerConfigRepository;
         this.ftpClientService = ftpClientService;
-        this.mockFtpClusterService = mockFtpClusterService;
     }
 
     @GetMapping("/servers")
@@ -41,13 +37,13 @@ public class FtpConfigController {
         return ftpServerConfigRepository.findById(id).map(config -> {
             config.setName(updatedConfig.getName());
             config.setHost(updatedConfig.getHost());
-            config.setPort(updatedConfig.getPort());
+            config.setPort(updatedConfig.getPort() > 0 ? updatedConfig.getPort() : 21);
             config.setUsername(updatedConfig.getUsername());
             if (updatedConfig.getPassword() != null && !updatedConfig.getPassword().isBlank()) {
                 config.setPassword(updatedConfig.getPassword());
             }
-            config.setRemoteDir(updatedConfig.getRemoteDir());
-            config.setProtocol(updatedConfig.getProtocol());
+            config.setRemoteDir(updatedConfig.getRemoteDir() != null && !updatedConfig.getRemoteDir().isBlank() ? updatedConfig.getRemoteDir() : "/");
+            config.setProtocol(updatedConfig.getProtocol() != null ? updatedConfig.getProtocol() : "FTP");
             config.setEnabled(updatedConfig.isEnabled());
             ftpServerConfigRepository.save(config);
             return ResponseEntity.ok(config);
@@ -80,29 +76,22 @@ public class FtpConfigController {
     @PostMapping("/servers/{id}/test")
     public ResponseEntity<?> testServer(@PathVariable String id) {
         return ftpServerConfigRepository.findById(id).map(config -> {
+            if (config.getHost() == null || config.getHost().isBlank()) {
+                return ResponseEntity.ok(Map.of(
+                        "serverId", id,
+                        "serverName", config.getName(),
+                        "connectionSuccess", false,
+                        "message", "Host IP address is not configured yet. Click 'Edit' to enter host details."
+                ));
+            }
+
             boolean success = ftpClientService.testConnection(config);
             return ResponseEntity.ok(Map.of(
                     "serverId", id,
                     "serverName", config.getName(),
                     "connectionSuccess", success,
-                    "message", success ? "Successfully connected and authenticated" : "Connection or authentication failed"
+                    "message", success ? "Successfully connected and authenticated on port " + config.getPort() : "Connection failed to " + config.getHost() + ":" + config.getPort()
             ));
         }).orElse(ResponseEntity.notFound().build());
-    }
-
-    @GetMapping("/mock-cluster")
-    public Map<Integer, Boolean> getMockClusterStatus() {
-        return mockFtpClusterService.getClusterStatus();
-    }
-
-    @PostMapping("/mock-cluster/{port}/toggle")
-    public ResponseEntity<?> toggleMockServer(@PathVariable int port) {
-        mockFtpClusterService.toggleServer(port);
-        boolean isRunning = mockFtpClusterService.isServerRunning(port);
-        return ResponseEntity.ok(Map.of(
-                "port", port,
-                "running", isRunning,
-                "message", isRunning ? "Mock FTP Server started" : "Mock FTP Server stopped (simulating failure)"
-        ));
     }
 }
