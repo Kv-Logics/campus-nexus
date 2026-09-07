@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  campus-nexus:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: kvlogics/campus-nexus:latest
+    container_name: campus-nexus-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATA_MONGODB_URI=mongodb+srv://muruga:muruga99@muruga.n9rrdn0.mongodb.net/campus_nexus?retryWrites=true&w=majority&appName=muruga
+      - APP_STORAGE_STAGING_DIR=/app/staging
+      - APP_STORAGE_WORKER_THREADS=10
+    volumes:
+      - staging_data:/app/staging
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  staging_data:
+    driver: local

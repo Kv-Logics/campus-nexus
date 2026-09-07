@@ -111,10 +111,26 @@ public class RelayTunnelHandler extends TextWebSocketHandler {
         });
 
         logger.info("Campus Relay Node disconnected (Session: {}, Reason: {})", sessionId, status);
+
+        if (activeSessions.isEmpty()) {
+            pendingRequests.forEach((reqId, future) -> {
+                ProxyResponsePacket err = new ProxyResponsePacket();
+                err.setStatus(503);
+                err.setError("Relay node disconnected before response could be returned.");
+                future.complete(err);
+            });
+            pendingRequests.clear();
+        }
     }
 
     public CompletableFuture<ProxyResponsePacket> forwardHttpRequest(String targetUrl, String method, String body) {
-        if (activeSessions.isEmpty()) {
+        // Filter for active, open sessions
+        WebSocketSession session = activeSessions.values().stream()
+                .filter(WebSocketSession::isOpen)
+                .findFirst()
+                .orElse(null);
+
+        if (session == null) {
             CompletableFuture<ProxyResponsePacket> failedFuture = new CompletableFuture<>();
             ProxyResponsePacket err = new ProxyResponsePacket();
             err.setStatus(503);
@@ -123,10 +139,7 @@ public class RelayTunnelHandler extends TextWebSocketHandler {
             return failedFuture;
         }
 
-        // Select the first active session (or round-robin)
-        WebSocketSession session = activeSessions.values().iterator().next();
         String requestId = UUID.randomUUID().toString();
-
         CompletableFuture<ProxyResponsePacket> future = new CompletableFuture<>();
         pendingRequests.put(requestId, future);
 
