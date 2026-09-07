@@ -220,47 +220,116 @@
             </div>
         </section>
 
-        <!-- TAB 3: FTP SERVERS & MOCK CLUSTER -->
+        <!-- TAB 3: FTP SERVERS CONFIGURATION -->
         <section id="servers-tab" class="tab-pane">
             <div class="glass-card">
                 <div class="card-header">
-                    <div class="header-left">
-                        <h2>Embedded 10-Node Mock FTP Cluster</h2>
-                        <span class="badge">Local In-Memory Cluster</span>
+                    <div>
+                        <h2>Production FTP Server Configurations (FTP-01 to FTP-10)</h2>
+                        <p class="section-desc" style="margin-bottom: 0;">Configure your 10 live production FTP destinations. Click <strong>Edit</strong> on any server to set host IP/domain, port, credentials, and remote storage paths.</p>
                     </div>
-                    <p class="card-subtitle">Zero-configuration testbed running on ports 2121 to 2130. You can simulate server crashes by stopping individual nodes and watching the fan-out retry mechanism in action!</p>
+                </div>
+                <div class="table-responsive" style="margin-top: 1.25rem;">
+                    <table class="glass-table">
+                        <thead>
+                            <tr>
+                                <th>Target</th>
+                                <th>Host : Port</th>
+                                <th>Username</th>
+                                <th>Remote Directory</th>
+                                <th>Protocol</th>
+                                <th>Status</th>
+                                <th style="text-align: right;">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ftpServersTableBody">
+                            <!-- Populated dynamically with edit controls -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-card" style="margin-top: 1.5rem;">
+                <div class="card-header">
+                    <div class="header-left">
+                        <h2>Local Testing Cluster (Ports 2121 to 2130)</h2>
+                        <span class="badge">Optional Sandbox</span>
+                    </div>
+                    <p class="card-subtitle">Embedded in-memory FTP nodes for local dry-runs when physical remote FTP servers are not yet reachable.</p>
                 </div>
 
                 <div class="cluster-grid" id="mockClusterGrid">
                     <!-- Populated dynamically with 10 nodes -->
                 </div>
             </div>
-
-            <div class="glass-card" style="margin-top: 1.5rem;">
-                <div class="card-header">
-                    <h2>Configured FTP Server Destinations</h2>
-                    <span class="badge">Target Configurations</span>
-                </div>
-                <div class="table-responsive">
-                    <table class="glass-table">
-                        <thead>
-                            <tr>
-                                <th>Target ID</th>
-                                <th>Host : Port</th>
-                                <th>Username</th>
-                                <th>Remote Directory</th>
-                                <th>Protocol</th>
-                                <th>State</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="ftpServersTableBody">
-                            <!-- Populated dynamically -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </section>
+
+        <!-- EDIT FTP SERVER MODAL -->
+        <div id="editFtpModal" class="modal-backdrop hidden">
+            <div class="modal-card">
+                <div class="modal-header">
+                    <h3 id="modalTitle">Edit Configuration: FTP-01</h3>
+                    <button type="button" class="btn-close-modal" id="btnCloseModal">✕</button>
+                </div>
+                <form id="editFtpForm" class="modal-form">
+                    <input type="hidden" id="editServerId">
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="editServerName">Destination Name</label>
+                            <input type="text" id="editServerName" class="glass-input" required placeholder="e.g. FTP-01 or Lab-Server">
+                        </div>
+                        <div class="form-group">
+                            <label for="editProtocol">Protocol</label>
+                            <select id="editProtocol" class="glass-input">
+                                <option value="FTP">FTP (Standard)</option>
+                                <option value="FTPS">FTPS (Secure TLS)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-2">
+                            <label for="editHost">Host / IP Address</label>
+                            <input type="text" id="editHost" class="glass-input" required placeholder="e.g. 192.168.1.50 or ftp.company.com">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="editPort">Port</label>
+                            <input type="number" id="editPort" class="glass-input" required value="21">
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label for="editUsername">Username</label>
+                            <input type="text" id="editUsername" class="glass-input" required placeholder="FTP Username">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label for="editPassword">Password</label>
+                            <input type="password" id="editPassword" class="glass-input" placeholder="Leave blank to keep current">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editRemoteDir">Remote Directory Path</label>
+                        <input type="text" id="editRemoteDir" class="glass-input" required placeholder="/data/incoming or /var/ftp">
+                    </div>
+
+                    <div class="form-group checkbox-group">
+                        <label>
+                            <input type="checkbox" id="editEnabled"> Enable this FTP Destination for Fan-Out
+                        </label>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline" id="btnTestModalConnection">🔌 Test Connection</button>
+                        <div class="footer-actions">
+                            <button type="button" class="btn btn-outline" id="btnCancelModal">Cancel</button>
+                            <button type="submit" class="btn btn-primary" id="btnSaveModal">Save Configuration</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
     </main>
 
     <footer class="footer">

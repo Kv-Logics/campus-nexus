@@ -423,9 +423,12 @@ async function fetchRelayNodes() {
 }
 
 // MOCK CLUSTER & FTP SERVERS MANAGER
+let ftpServersCache = [];
+
 function initMockCluster() {
     fetchClusterStatus();
     fetchFtpServers();
+    initFtpEditModal();
     setInterval(fetchClusterStatus, 4000);
 }
 
@@ -453,8 +456,8 @@ async function fetchClusterStatus() {
                             <span class="status-indicator ${isRunning ? 'live' : ''}">${isRunning ? 'Online' : 'Stopped'}</span>
                         </div>
                         <div class="cluster-port">Port: <strong>${port}</strong></div>
-                        <button class="btn ${isRunning ? 'btn-outline' : 'btn-primary'}" style="font-size:0.75rem;padding:0.4rem 0.8rem;" onclick="toggleMockServer(${port})">
-                            ${isRunning ? '🛑 Stop (Simulate Drop)' : '▶️ Restart Server'}
+                        <button class="btn ${isRunning ? 'btn-outline' : 'btn-primary'}" style="font-size:0.75rem;padding:0.35rem 0.75rem;" onclick="toggleMockServer(${port})">
+                            ${isRunning ? '🛑 Stop Node' : '▶️ Start Node'}
                         </button>
                     </div>
                 `;
@@ -462,11 +465,6 @@ async function fetchClusterStatus() {
 
             grid.innerHTML = html;
             badge.textContent = `${runningCount}/10 FTP Nodes Live`;
-            if (runningCount === 10) {
-                badge.style.color = 'var(--success)';
-            } else {
-                badge.style.color = 'var(--warning)';
-            }
         }
     } catch (e) {
         console.error('Failed to fetch mock cluster status:', e);
@@ -486,18 +484,24 @@ async function fetchFtpServers() {
     try {
         const res = await fetch('/api/ftp/servers');
         if (res.ok) {
-            const servers = await res.json();
+            ftpServersCache = await res.json();
             const tbody = document.getElementById('ftpServersTableBody');
-            tbody.innerHTML = servers.map(s => `
+            tbody.innerHTML = ftpServersCache.map(s => `
                 <tr>
                     <td><strong>${escapeHtml(s.name)}</strong></td>
                     <td><code>${escapeHtml(s.host)}:${s.port}</code></td>
                     <td>${escapeHtml(s.username)}</td>
                     <td><code>${escapeHtml(s.remoteDir)}</code></td>
                     <td><span class="badge">${s.protocol}</span></td>
-                    <td><span class="status-indicator ${s.enabled ? 'live' : ''}">${s.enabled ? 'Enabled' : 'Disabled'}</span></td>
                     <td>
-                        <button class="btn btn-outline" style="padding:0.25rem 0.6rem;font-size:0.72rem;" onclick="testFtpConnection(${s.id})">Test Auth</button>
+                        <span class="status-indicator ${s.enabled ? 'live' : ''}">${s.enabled ? 'Active' : 'Disabled'}</span>
+                    </td>
+                    <td style="text-align: right; white-space: nowrap;">
+                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;" onclick="openEditModal(${s.id})">✏️ Edit</button>
+                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="testFtpConnection(${s.id})">🔌 Test</button>
+                        <button class="btn btn-outline" style="padding:0.3rem 0.65rem;font-size:0.75rem;margin-left:0.3rem;" onclick="toggleFtpServer(${s.id})">
+                            ${s.enabled ? 'Disable' : 'Enable'}
+                        </button>
                     </td>
                 </tr>
             `).join('');
@@ -506,6 +510,90 @@ async function fetchFtpServers() {
         console.error('Failed to fetch FTP servers:', e);
     }
 }
+
+window.openEditModal = function(id) {
+    const server = ftpServersCache.find(s => s.id === id);
+    if (!server) return;
+
+    document.getElementById('editServerId').value = server.id;
+    document.getElementById('modalTitle').textContent = `Edit Configuration: ${server.name}`;
+    document.getElementById('editServerName').value = server.name;
+    document.getElementById('editHost').value = server.host;
+    document.getElementById('editPort').value = server.port;
+    document.getElementById('editUsername').value = server.username;
+    document.getElementById('editPassword').value = '';
+    document.getElementById('editRemoteDir').value = server.remoteDir;
+    document.getElementById('editProtocol').value = server.protocol || 'FTP';
+    document.getElementById('editEnabled').checked = server.enabled !== false;
+
+    document.getElementById('editFtpModal').classList.remove('hidden');
+};
+
+function initFtpEditModal() {
+    const modal = document.getElementById('editFtpModal');
+    const btnClose = document.getElementById('btnCloseModal');
+    const btnCancel = document.getElementById('btnCancelModal');
+    const form = document.getElementById('editFtpForm');
+    const btnTestModal = document.getElementById('btnTestModalConnection');
+
+    const closeModal = () => modal.classList.add('hidden');
+    btnClose.addEventListener('click', closeModal);
+    btnCancel.addEventListener('click', closeModal);
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('editServerId').value;
+        const payload = {
+            name: document.getElementById('editServerName').value.trim(),
+            host: document.getElementById('editHost').value.trim(),
+            port: parseInt(document.getElementById('editPort').value, 10),
+            username: document.getElementById('editUsername').value.trim(),
+            password: document.getElementById('editPassword').value,
+            remoteDir: document.getElementById('editRemoteDir').value.trim(),
+            protocol: document.getElementById('editProtocol').value,
+            enabled: document.getElementById('editEnabled').checked
+        };
+
+        try {
+            const res = await fetch(`/api/ftp/servers/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                closeModal();
+                fetchFtpServers();
+                alert(`Configuration for ${payload.name} saved successfully!`);
+            } else {
+                alert('Failed to save configuration: ' + await res.text());
+            }
+        } catch (err) {
+            alert('Error updating FTP server: ' + err.message);
+        }
+    });
+
+    btnTestModal.addEventListener('click', async () => {
+        const id = document.getElementById('editServerId').value;
+        btnTestModal.textContent = 'Testing...';
+        btnTestModal.disabled = true;
+        try {
+            await testFtpConnection(id);
+        } finally {
+            btnTestModal.textContent = '🔌 Test Connection';
+            btnTestModal.disabled = false;
+        }
+    });
+}
+
+window.toggleFtpServer = async function(id) {
+    try {
+        const res = await fetch(`/api/ftp/servers/${id}/toggle`, { method: 'POST' });
+        if (res.ok) fetchFtpServers();
+    } catch (e) {
+        alert('Failed to toggle FTP server status');
+    }
+};
 
 window.testFtpConnection = async function(id) {
     try {

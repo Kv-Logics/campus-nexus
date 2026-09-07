@@ -36,6 +36,24 @@ public class FtpConfigController {
         return ftpServerConfigRepository.save(config);
     }
 
+    @PutMapping("/servers/{id}")
+    public ResponseEntity<?> updateServer(@PathVariable Long id, @RequestBody FtpServerConfig updatedConfig) {
+        return ftpServerConfigRepository.findById(id).map(config -> {
+            config.setName(updatedConfig.getName());
+            config.setHost(updatedConfig.getHost());
+            config.setPort(updatedConfig.getPort());
+            config.setUsername(updatedConfig.getUsername());
+            if (updatedConfig.getPassword() != null && !updatedConfig.getPassword().isBlank()) {
+                config.setPassword(updatedConfig.getPassword());
+            }
+            config.setRemoteDir(updatedConfig.getRemoteDir());
+            config.setProtocol(updatedConfig.getProtocol());
+            config.setEnabled(updatedConfig.isEnabled());
+            ftpServerConfigRepository.save(config);
+            return ResponseEntity.ok(config);
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
     @PostMapping("/servers/{id}/toggle")
     public ResponseEntity<?> toggleServer(@PathVariable Long id) {
         return ftpServerConfigRepository.findById(id).map(config -> {

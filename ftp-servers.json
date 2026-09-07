@@ -1,0 +1,102 @@
+[
+  {
+    "name": "FTP-01",
+    "host": "127.0.0.1",
+    "port": 2121,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-02",
+    "host": "127.0.0.1",
+    "port": 2122,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-03",
+    "host": "127.0.0.1",
+    "port": 2123,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-04",
+    "host": "127.0.0.1",
+    "port": 2124,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-05",
+    "host": "127.0.0.1",
+    "port": 2125,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-06",
+    "host": "127.0.0.1",
+    "port": 2126,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-07",
+    "host": "127.0.0.1",
+    "port": 2127,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-08",
+    "host": "127.0.0.1",
+    "port": 2128,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-09",
+    "host": "127.0.0.1",
+    "port": 2129,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  },
+  {
+    "name": "FTP-10",
+    "host": "127.0.0.1",
+    "port": 2130,
+    "username": "ftpuser",
+    "password": "secret123",
+    "remoteDir": "/data/incoming",
+    "protocol": "FTP",
+    "enabled": true
+  }
+]
