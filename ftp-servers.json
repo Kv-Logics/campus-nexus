@@ -2,101 +2,101 @@
   {
     "name": "FTP-01",
     "host": "127.0.0.1",
-    "port": 2121,
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-02",
-    "host": "127.0.0.1",
-    "port": 2122,
+    "host": "192.168.1.102",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-03",
-    "host": "127.0.0.1",
-    "port": 2123,
+    "host": "192.168.1.103",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-04",
-    "host": "127.0.0.1",
-    "port": 2124,
+    "host": "192.168.1.104",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-05",
-    "host": "127.0.0.1",
-    "port": 2125,
+    "host": "192.168.1.105",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-06",
-    "host": "127.0.0.1",
-    "port": 2126,
+    "host": "192.168.1.106",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-07",
-    "host": "127.0.0.1",
-    "port": 2127,
+    "host": "192.168.1.107",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-08",
-    "host": "127.0.0.1",
-    "port": 2128,
+    "host": "192.168.1.108",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-09",
-    "host": "127.0.0.1",
-    "port": 2129,
+    "host": "192.168.1.109",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   },
   {
     "name": "FTP-10",
-    "host": "127.0.0.1",
-    "port": 2130,
+    "host": "192.168.1.110",
+    "port": 21,
     "username": "ftpuser",
-    "password": "secret123",
-    "remoteDir": "/data/incoming",
+    "password": "",
+    "remoteDir": "/",
     "protocol": "FTP",
-    "enabled": true
+    "enabled": false
   }
 ]

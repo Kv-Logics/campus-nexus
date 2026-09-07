@@ -54,6 +54,20 @@ public class FtpConfigController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @PostMapping("/servers/disable-all")
+    public List<FtpServerConfig> disableAllServers() {
+        List<FtpServerConfig> servers = ftpServerConfigRepository.findAll();
+        servers.forEach(s -> s.setEnabled(false));
+        return ftpServerConfigRepository.saveAll(servers);
+    }
+
+    @PostMapping("/servers/enable-all")
+    public List<FtpServerConfig> enableAllServers() {
+        List<FtpServerConfig> servers = ftpServerConfigRepository.findAll();
+        servers.forEach(s -> s.setEnabled(true));
+        return ftpServerConfigRepository.saveAll(servers);
+    }
+
     @PostMapping("/servers/{id}/toggle")
     public ResponseEntity<?> toggleServer(@PathVariable Long id) {
         return ftpServerConfigRepository.findById(id).map(config -> {

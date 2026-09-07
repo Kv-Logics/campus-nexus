@@ -47,12 +47,12 @@ public class DataInitializer implements CommandLineRunner {
                 FtpServerConfig config = new FtpServerConfig(
                         name,
                         "127.0.0.1",
-                        port,
+                        21,
                         "ftpuser",
-                        "secret123",
-                        "/data/incoming",
+                        "",
+                        "/",
                         "FTP",
-                        true
+                        false
                 );
                 ftpServerConfigRepository.save(config);
             }

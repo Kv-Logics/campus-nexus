@@ -429,7 +429,29 @@ function initMockCluster() {
     fetchClusterStatus();
     fetchFtpServers();
     initFtpEditModal();
+    initBatchFtpControls();
     setInterval(fetchClusterStatus, 4000);
+}
+
+function initBatchFtpControls() {
+    const btnDisableAll = document.getElementById('btnDisableAllFtp');
+    const btnEnableAll = document.getElementById('btnEnableAllFtp');
+
+    if (btnDisableAll) {
+        btnDisableAll.addEventListener('click', async () => {
+            if (confirm('Turn off all 10 FTP destinations?')) {
+                await fetch('/api/ftp/servers/disable-all', { method: 'POST' });
+                fetchFtpServers();
+            }
+        });
+    }
+
+    if (btnEnableAll) {
+        btnEnableAll.addEventListener('click', async () => {
+            await fetch('/api/ftp/servers/enable-all', { method: 'POST' });
+            fetchFtpServers();
+        });
+    }
 }
 
 async function fetchClusterStatus() {
