@@ -1,30 +1,36 @@
 # Campus Nexus
 
 > **Enterprise High-Throughput Concurrent File Distribution Engine & Campus Intranet Mesh Relay Gateway**  
-> Built with Java 21, Spring Boot 3, MongoDB Atlas, Apache Commons Net, and WebSocket Reverse Tunneling.
+> Built with Java 21, Spring Boot 3, MongoDB Atlas, Apache Commons Net, Docker, and WebSocket Reverse Tunneling.
 
 ---
 
-## Overview & Architecture
+## About
 
-Campus Nexus is a production networking and distributed delivery system designed for high concurrency, fault isolation, and cross-network intranet accessibility:
+**Campus Nexus** is a dual-capability distributed networking platform engineered to solve two fundamental challenges in modern academic and enterprise infrastructure:
 
-1. **Producer-Consumer + Fan-Out File Distribution**:
-   - Ingests files via HTTP multipart streaming upload or REST API.
-   - Stages files into local disk storage while computing streaming **SHA-256 cryptographic checksums**.
-   - Concurrently fans out distribution tasks to **10 independent FTP/FTPS production servers** (default port `21`) via a bounded `ExecutorService` thread pool.
-   - **Fault Isolation**: Connection dropouts or timeouts on any individual FTP node never stall or interrupt transfers on the other 9 nodes.
-   - **Exponential Backoff & Retries**: Automated retry scheduling (5s, 30s) alongside instant manual retry triggers.
+1. **High-Throughput Fan-Out File Distribution (1-to-10 Parallel Delivery)**:  
+   Institutions and lab environments frequently need to distribute large archives, software packages, or examination datasets to multiple remote servers simultaneously. Traditional sequential transfers are slow and vulnerable to single-point failures. Campus Nexus streams incoming uploads into local staging storage, computes a real-time cryptographic **SHA-256 checksum**, and concurrently fans out the payload across **10 independent production FTP/FTPS endpoints** on standard port `21`. Transfers run inside a bounded thread pool with complete fault isolation—if one destination drops or throttles, the remaining 9 nodes proceed at line speed.
 
-2. **Campus Intranet Mesh Relay & Reverse Tunnel**:
-   - Enables secure access to campus-only internal intranet portals (`10.x.x.x` or `.campus.internal`) from external laptops without a VPN.
-   - A peer device connected to campus Wi-Fi opens Campus Nexus and authenticates as an active relay node.
-   - Establishes a persistent bi-directional WebSocket reverse tunnel (`/ws/relay`).
-   - Intranet requests from the host laptop are tunneled through the connected peer node and rendered live.
+2. **Zero-VPN Campus Intranet Mesh Gateway (Reverse WebSocket Tunnel)**:  
+   University portals, grade databases, and lab resources are frequently locked behind campus network firewalls (`10.x.x.x` or `.internal` subnets), inaccessible to students or faculty working remotely without clunky VPN clients. Campus Nexus provides a browser-based reverse tunnel: a trusted peer connected to campus Wi-Fi (e.g., a student's mobile phone) opens a lightweight, isolated relay page (`relay.html`). The peer establishes a persistent, bi-directional WebSocket reverse tunnel back to the gateway. External administrators can then query firewalled intranet resources on demand, routed seamlessly through the peer's browser.
 
-3. **Production Database**:
-   - Powered by **MongoDB Atlas** cloud database cluster (`campus_nexus`).
-   - Persists staged file metadata, transfer job states, relay node heartbeats, and FTP server configurations with zero mock data.
+3. **Cost-Optimized Cloud Architecture**:  
+   Includes a ready-to-deploy serverless **Vercel Power Switch** (`ec2-controller`) that communicates directly with AWS EC2. Administrators can power up their AWS instance on-demand with one tap and power it down when done, slashing idle compute costs to **$0.00/hour**.
+
+---
+
+## Key Features
+
+- **Concurrent Fan-Out Distribution**: Parallel transfers to 10 independent FTP/FTPS production targets.
+- **Cryptographic File Integrity**: On-the-fly streaming SHA-256 digest computation during local staging.
+- **Preflight Target Health Probing**: Target connectivity verification before triggering large fan-out payloads.
+- **Staging Lifecycle Management**: Full control to inspect, download (retrieve), or delete staged files on demand.
+- **Fault Isolation & Exponential Backoff**: Independent worker retry policies (5s, 30s) without cascading stalls.
+- **Isolated Peer Relay Node Portal**: Clean, standalone mobile page (`relay.html`) featuring QR code scan and 1-click WhatsApp invite links.
+- **Zero Mock Data & Masked Credentials**: Pure production defaults; saved passwords are write-only and never exposed in REST responses.
+- **Containerized & Cloud-Ready**: Multi-stage Alpine JRE 21 `Dockerfile`, `docker-compose.yml`, and `/api/health` monitoring probe.
+- **On-Demand EC2 Cloud Controller**: Serverless Next.js/Vercel micro-service with PIN authentication to toggle AWS instances on/off.
 
 ---
 
@@ -33,7 +39,7 @@ Campus Nexus is a production networking and distributed delivery system designed
 ```
                                 CLIENT / USER
                                       │
-                              Upload / Drag & Drop
+                               Upload / Drag & Drop
                                       │
                                       ▼
                            ┌─────────────────────┐
@@ -89,14 +95,23 @@ Campus Nexus is a production networking and distributed delivery system designed
 
 ### Prerequisites
 - Java 21+ (OpenJDK / Eclipse Temurin)
-- Git
-- MongoDB Atlas cluster (configured in `application.properties`)
+- Git & Docker (optional for containerized run)
+- MongoDB Atlas cluster (free tier or dedicated)
 
-### 1. Clone & Run
+### 1. Environment Configuration
+Copy `.env.example` to `.env`:
 ```bash
-git clone https://github.com/Kv-Logics/campus-nexus.git
-cd campus-nexus
+cp .env.example .env
+```
+Set your MongoDB Atlas connection string and staging preferences:
+```env
+SPRING_DATA_MONGODB_URI=mongodb+srv://<username>:<password>@cluster.mongodb.net/campus_nexus?retryWrites=true&w=majority
+APP_STORAGE_STAGING_DIR=./staging
+APP_STORAGE_WORKER_THREADS=10
+```
 
+### 2. Run Locally
+```bash
 # Windows:
 .\mvnw.cmd spring-boot:run
 
@@ -104,36 +119,47 @@ cd campus-nexus
 ./mvnw spring-boot:run
 ```
 
-### 2. Access the SaaS Dashboard
-Open your browser and navigate to:
-```
-http://localhost:8080
+Access the host dashboard at `http://localhost:8080`.
+
+### 3. Run with Docker Compose
+```bash
+docker compose up -d --build
 ```
 
 ---
 
-## Operating the 10-Node Distribution Engine
+## Operating the System
 
-1. Open `http://localhost:8080`.
-2. Navigate to the **FTP Targets** tab:
-   - All 10 destination FTP servers (FTP-01 through FTP-10) default to standard port `21` and are initially set to disabled.
-   - Click **Edit** on any server to specify real target hosts, ports, credentials, and remote storage paths.
-   - Click **Test Connection** to verify live connectivity and credentials.
-   - Toggle the server status to **Enable** when ready.
-3. Switch to the **File Distribution** tab:
-   - Drag and drop or browse to upload any file.
-   - The engine automatically stages the file, calculates the cryptographic SHA-256 hash, and fans out parallel transfer jobs to all active FTP targets.
-   - Monitor live progress, statuses (`PENDING`, `UPLOADING`, `SUCCESS`, `FAILED`), and retry counts in real-time.
+### 1. 10-Node File Distribution
+1. Navigate to the **FTP Targets** tab:
+   - Configure hosts, credentials, and remote storage paths (e.g. `ftp.amritanet.edu` is suggested by default).
+   - Use **Check Readiness** or **Test Connection** to probe port 21 socket availability.
+   - Toggle targets **Enabled**.
+2. Switch to the **File Distribution** tab:
+   - Upload any file (drag-and-drop up to 500MB).
+   - Once staged with SHA-256, pick target FTP nodes from the modal and click **Send**.
+   - Monitor real-time progress (`PENDING`, `UPLOADING`, `SUCCESS`, `FAILED`) and retry failed transfers with 1 click.
+   - Staged files can be retrieved (downloaded) or deleted from disk storage at any time.
+
+### 2. Campus Intranet Reverse Bridge
+1. Open the **Intranet Relay** tab on the host dashboard.
+2. Share the generated link or QR code with a peer on campus Wi-Fi (`/relay.html`).
+3. On the peer's phone/laptop, they tap **Connect as Campus Relay**.
+4. On your host dashboard, enter the desired intranet URL (e.g. `http://10.1.2.3/portal`) and click **Fetch via Peer**.
 
 ---
 
-## Using the Campus Intranet Bridge
+## Serverless AWS EC2 Controller (`ec2-controller`)
 
-1. Share your Campus Nexus URL with a peer connected to the campus Wi-Fi network.
-2. On their mobile device browser, have them open the **Intranet Relay** tab and click:
-   > **"Connect as Campus Relay"**
-3. On your host laptop, enter any intranet URL (e.g. `http://10.1.2.3/student-portal`) into the **Laptop Intranet Gateway** and click **"Fetch via Peer"**.
-4. The request will route through the peer's WebSocket tunnel and return the internal campus page content.
+To keep hosting costs near zero, deploy the companion micro-service in `ec2-controller/` to **Vercel**:
+1. Import `Kv-Logics/campus-nexus` into Vercel, setting root directory to `ec2-controller`.
+2. Add environment variables:
+   - `MY_AWS_REGION`: e.g. `ap-south-1`
+   - `MY_AWS_ACCESS_KEY`: IAM access key with EC2 permissions
+   - `MY_AWS_SECRET_KEY`: IAM secret key
+   - `MY_EC2_INSTANCE_ID`: Your EC2 instance ID
+   - `ADMIN_SECRET_KEY`: Your personal security PIN
+3. Use the glassmorphic mobile web interface to click **Power ON** before distributions and **Power OFF** when finished.
 
 ---
 
@@ -141,16 +167,18 @@ http://localhost:8080
 
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/api/files/upload` | Ingests file, computes streaming SHA-256, stages, and fans out jobs |
-| `GET` | `/api/files` | Lists staged files with metadata and SHA-256 checksums |
-| `GET` | `/api/jobs` | Lists all transfer jobs or filtered by `?fileId={id}` |
-| `POST` | `/api/jobs/{id}/retry` | Triggers an immediate manual retry for a failed job |
-| `GET` | `/api/ftp/servers` | Lists all 10 production FTP server targets |
-| `PUT` | `/api/ftp/servers/{id}` | Updates configuration for a specific FTP server target |
+| `GET` | `/api/health` | System health probe (DB connectivity, active relay count, disk space) |
+| `POST` | `/api/files/upload` | Ingests multipart file, computes SHA-256 digest, and stages locally |
+| `GET` | `/api/files` | Lists all staged files and metadata |
+| `GET` | `/api/files/staging/{filename}` | Downloads/retrieves a staged file from disk storage |
+| `DELETE` | `/api/files/staging/{filename}` | Deletes a staged file and removes its database record |
+| `POST` | `/api/files/{id}/distribute` | Fans out staged file to selected active FTP targets |
+| `GET` | `/api/jobs` | Lists transfer jobs with live statuses (`?fileId={id}`) |
+| `POST` | `/api/jobs/{id}/retry` | Triggers an immediate retry for a failed transfer job |
+| `GET` | `/api/ftp/servers` | Lists configured FTP servers (passwords masked) |
+| `PUT` | `/api/ftp/servers/{id}` | Updates configuration for an FTP target |
 | `POST` | `/api/ftp/servers/{id}/toggle` | Enables or disables an individual FTP server |
-| `POST` | `/api/ftp/servers/{id}/test` | Tests live socket connectivity and authentication for an FTP target |
-| `POST` | `/api/ftp/servers/disable-all` | Disables all 10 FTP destinations at once |
-| `POST` | `/api/ftp/servers/enable-all` | Enables all 10 FTP destinations at once |
+| `POST` | `/api/ftp/servers/{id}/test` | Tests live socket connectivity and authentication |
 | `GET` | `/api/proxy/nodes` | Lists active connected campus relay nodes |
 | `GET` | `/api/proxy/fetch?url={url}` | Routes an intranet HTTP request through an active relay tunnel |
 
@@ -158,16 +186,11 @@ http://localhost:8080
 
 ## Database Configuration
 
-Campus Nexus uses MongoDB Atlas:
-- `files`: Staged file records, metadata, and cryptographic SHA-256 checksums.
-- `ftp_servers`: 10 production FTP destination configurations (host, port 21, credentials, remote directory, status).
-- `transfer_jobs`: Transfer states (`PENDING`, `UPLOADING`, `SUCCESS`, `FAILED`), attempt tracking, and error logs.
-- `relay_nodes`: Real-time session registry for connected peer devices on campus Wi-Fi.
-
-Configure your MongoDB URI in `src/main/resources/application.properties`:
-```properties
-spring.data.mongodb.uri=mongodb+srv://<username>:<password>@cluster.mongodb.net/campus_nexus?retryWrites=true&w=majority
-```
+Campus Nexus persists all operational state in **MongoDB Atlas**:
+- `files`: Staged file records, file sizes, timestamps, and SHA-256 checksums.
+- `ftp_servers`: 10 production FTP destination profiles (port 21, credentials, remote folders, statuses).
+- `transfer_jobs`: Transfer states, timestamps, retry attempt counts, and socket error messages.
+- `relay_nodes`: Active session registry and heartbeats for connected campus peers.
 
 ---
 
